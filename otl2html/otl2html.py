@@ -5,8 +5,8 @@
 # Copyright 2001 Noel Henson All rights reserved
 #
 # ALPHA VERSION!!!
-# $Revision: 1.22 $
-# $Date: 2004/11/19 13:28:54 $
+# $Revision: 1.23 $
+# $Date: 2004/11/22 23:59:04 $
 # $Author: noel $
 # $Source: /home/noel/active/NoelOTL/RCS/otl2html.py,v $
 # $Locker: noel $
@@ -92,8 +92,8 @@ def showUsage():
 def showVersion():
    print
    print "RCS"
-   print " $Revision: 1.22 $"
-   print " $Date: 2004/11/19 13:28:54 $"
+   print " $Revision: 1.23 $"
+   print " $Date: 2004/11/22 23:59:04 $"
    print " $Author: noel $"
    print " $Source: /home/noel/active/NoelOTL/RCS/otl2html.py,v $"
    print
@@ -199,6 +199,15 @@ def dashStrip(line):
 	if (line[0] == "-"): return line[1:]
         else: return line
 
+# pipeStrip(line)
+# stip a leading '|', if it exists
+# input: line
+# output: returns a string with a stipped '|'
+
+def pipeStrip(line):
+	if (line[0] == "|"): return line[1:]
+        else: return line
+
 # plusStrip(line)
 # stip a leading '+', if it exists
 # input: line
@@ -235,6 +244,41 @@ def handlePreformattedText(linein,lineLevel):
     print " class=\"PRE" + str(lineLevel) + "\"",
     inBodyText = 2
   print ">" + semicolonStrip(rstrip(lstrip(linein))),
+
+# handleTableColumns
+# print a table row, starting with a <TABLE> tag if necessary
+# input: linein - a single line that may or may not have tabs at the beginning
+# output: through standard out
+
+def handleTableColumns(linein,lineLevel):
+  out = lstrip(rstrip(linein))
+  out = replace(out,' | ','</td><td>')
+  out = replace(out,'| ','<td>')
+  out = replace(out,' |','</td>')
+  return out 
+
+# handleTableRow
+# print a table row, starting with a <TABLE> tag if necessary
+# input: linein - a single line that may or may not have tabs at the beginning
+# output: through standard out
+
+def handleTableRow(linein,lineLevel):
+  out = "<tr>"
+  out += handleTableColumns(linein,lineLevel)
+  out += "</tr>"
+  return out
+
+# handleTable
+# print a table, starting with a <TABLE> tag if necessary
+# input: linein - a single line that may or may not have tabs at the beginning
+# output: through standard out
+
+def handleTable(linein,lineLevel):
+  global inBodyText
+  if (inBodyText != 3): 
+	  print "<table class=\"TAB" + str(lineLevel) + "\">"
+	  inBodyText = 3
+  print handleTableRow(linein,lineLevel), 
 
 # closeLevels
 # generate the number of </ul> or </ol> tags necessary to proplerly finish
@@ -314,6 +358,9 @@ def processLine(linein):
           elif (inBodyText == 2):
 	    print"</pre>"
 	    inBodyText = 0
+          elif (inBodyText == 3):
+	    print"</table>"
+	    inBodyText = 0
   	  print "</ol>"
   	level = level - 1
       else:
@@ -335,12 +382,21 @@ def processLine(linein):
 			  print "</pre>"
 			  handlePreformattedText(linein,lineLevel)
             	  else: print semicolonStrip(rstrip(lstrip(linein))),
+          elif (lineLevel == find(linein,"|") +1 ): 
+		  if (inBodyText == 0): handleTable(linein,lineLevel)
+		  elif (pipeStrip(rstrip(lstrip(linein))) == ""):
+			  print "</table>"
+			  handleTtable(linein,lineLevel)
+            	  else: print handleTableRow(linein,lineLevel),
   	  else:
             if (inBodyText == 1):
 	    	    print"</p>"
 		    inBodyText = 0
             elif (inBodyText == 2):
 	    	    print"</pre>"
+		    inBodyText = 0
+            elif (inBodyText == 3):
+	    	    print"</table>"
 		    inBodyText = 0
             print "<li",
 	    if (styleSheet != ""):
@@ -418,8 +474,8 @@ def printHeader(linein):
   global styleSheet, inlineStyle
   print "<!DOCTYPE HTML PUBLIC \"-//W3C//DTD HTML 4.01//EN\" \"http://www.w3.org/TR/html4/strict.dtd\">"
   print "<html><head><title>" + linein + "</title>"
-  print"<!--  $Revision: 1.22 $ -->"
-  print"<!--  $Date: 2004/11/19 13:28:54 $ -->"
+  print"<!--  $Revision: 1.23 $ -->"
+  print"<!--  $Date: 2004/11/22 23:59:04 $ -->"
   print"<!--  $Author: noel $ -->"
   file = open(styleSheet,"r")
   if (styleSheet != "" and inlineStyle == 0):
