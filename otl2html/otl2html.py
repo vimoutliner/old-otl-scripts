@@ -5,8 +5,8 @@
 # Copyright 2001 Noel Henson All rights reserved
 #
 # ALPHA VERSION!!!
-# $Revision: 1.16 $
-# $Date: 2003/11/23 01:01:48 $
+# $Revision: 1.17 $
+# $Date: 2003/11/24 18:16:16 $
 # $Author: noel $
 # $Source: /home/noel/apps/NoelOTL/RCS/otl2html.py,v $
 # $Locker: noel $
@@ -63,12 +63,12 @@ def showUsage():
    print "Options"
    print "    -t type        Specify the format type."
    print "                   Types:"
-   print "                      simple - uses HTML tags <H1> through <H9>"
-   print "                      bullets - uses HTML tags <UL> and <LI>"
-   print "                      numeric - uses HTML tags <OL> and <LI> for 1.1.1"
-   print "                      roman - uses HTML tags <OL> and <LI> for I.I.I"
-   print "                      alpha - uses HTML tags <OL> and <LI> for A.A.A"
-   print "                      indent - uses HTML tags <OL> and <LI>"
+   print "                      simple - uses HTML tags <h1> through <h9>"
+   print "                      bullets - uses HTML tags <ul> and <li>"
+   print "                      numeric - uses HTML tags <ol> and <li> for 1.1.1"
+   print "                      roman - uses HTML tags <ol> and <li> for I.I.I"
+   print "                      alpha - uses HTML tags <ol> and <li> for A.A.A"
+   print "                      indent - uses HTML tags <ol> and <li>"
    print "                      Not compatible with -s or -S."
    print "    -p              Presentation: slide show output for use with HtmlSlides."
    print "    -s sheet        Use the specified style sheet with a link. Not compatible"
@@ -92,8 +92,8 @@ def showUsage():
 def showVersion():
    print
    print "RCS"
-   print " $Revision: 1.16 $"
-   print " $Date: 2003/11/23 01:01:48 $"
+   print " $Revision: 1.17 $"
+   print " $Date: 2003/11/24 18:16:16 $"
    print " $Author: noel $"
    print " $Source: /home/noel/apps/NoelOTL/RCS/otl2html.py,v $"
    print
@@ -183,13 +183,13 @@ def colonStrip(line):
 
 # handleBodyText
 # print body text lines with a class indicating level, if style sheets
-# are being used. otherwise print just <P>
+# are being used. otherwise print just <p>
 # input: linein - a single line that may or may not have tabs at the beginning
 # output: through standard out
 
 def handleBodyText(linein,lineLevel):
   global inBodyText
-  print "<P",
+  print "<p",
   if (styleSheet != ""):
     print " class=\"P" + str(lineLevel) + "\"",
     inBodyText = 1
@@ -228,7 +228,7 @@ def processLine(linein):
   lineLevel = getLineLevel(linein)
   if ((hideComments == 0) or (lineLevel != (find(linein,"[")+1))):
     if (formatMode == "simple"):
-      print "<H" + str(lineLevel) + ">" + lstrip(linein) + "</H" + str(lineLevel) + ">"
+      print "<h" + str(lineLevel) + ">" + lstrip(linein) + "</h" + str(lineLevel) + ">"
     else:
       if (lineLevel > level):
        while (lineLevel > level):
@@ -236,27 +236,27 @@ def processLine(linein):
           if (inBodyText == 1):
 	    print"</p>"
 	    inBodyText = 0
-    	  print "<UL>"
+    	  print "<ul>"
     	elif (formatMode == "roman"):
           if (inBodyText == 1):
 	    print"</p>"
 	    inBodyText = 0
-    	  print "<OL type=\"I\">"
+    	  print "<ol type=\"I\">"
     	elif (formatMode == "numeric"):
           if (inBodyText == 1):
 	    print"</p>"
 	    inBodyText = 0
-    	  print "<OL type=\"1\">"
+    	  print "<ol type=\"1\">"
     	elif (formatMode == "alpha"):
           if (inBodyText == 1):
 	    print"</p>"
 	    inBodyText = 0
-    	  print "<OL type=\"A\">"
+    	  print "<ol type=\"A\">"
     	elif (formatMode == "indent"):
           if (inBodyText == 1):
 	    print"</p>"
 	    inBodyText = 0
-    	  print "<OL>"
+    	  print "<ol>"
     	else:
     	  sys.exit("Error! Unknown formatMode type")
     	level = level + 1
@@ -266,12 +266,12 @@ def processLine(linein):
           if (inBodyText == 1):
 	    print"</p>"
 	    inBodyText = 0
-  	  print "</UL>"
+  	  print "</ul>"
   	else:
           if (inBodyText == 1):
 	    print"</p>"
 	    inBodyText = 0
-  	  print "</OL>"
+  	  print "</ol>"
   	level = level - 1
       else:
         print
@@ -287,7 +287,7 @@ def processLine(linein):
             if (inBodyText == 1):
 	    	    print"</p>"
 		    inBodyText = 0
-            print "<LI",
+            print "<li",
 	    if (styleSheet != ""):
               print " class=\"L" + str(lineLevel) + "\"",
             print ">" + rstrip(lstrip(linein)),
@@ -311,7 +311,7 @@ def processLine(linein):
               if (inBodyText == 1):
 	    	    print"</p>"
 		    inBodyText = 0
-              print "<LI",
+              print "<li",
 	      if (styleSheet != ""):
                 print " class=\"LI.L" + str(lineLevel) + "\"",
               print ">" + rstrip(lstrip(linein)),
@@ -353,40 +353,40 @@ def flatten(idx):
   return
 
 def printHeader(linein):
-  print "<!DOCTYPE HTML PUBLIC \"-//W3C//DTD HTML 4.01//EN\" \"http://www.w3.org/TR/html4/strict.dtd\">"
-  print "<HTML><TITLE>" + linein + "</TITLE>"
-  print"<!--  $Revision: 1.16 $ -->"
-  print"<!--  $Date: 2003/11/23 01:01:48 $ -->"
-  print"<!--  $Author: noel $ -->"
-
-def printStyle(linein):
   global styleSheet, inlineStyle
+  print "<!DOCTYPE HTML PUBLIC \"-//W3C//DTD HTML 4.01//EN\" \"http://www.w3.org/TR/html4/strict.dtd\">"
+  print "<html><head><title>" + linein + "</title>"
+  print"<!--  $Revision: 1.17 $ -->"
+  print"<!--  $Date: 2003/11/24 18:16:16 $ -->"
+  print"<!--  $Author: noel $ -->"
   file = open(styleSheet,"r")
   if (styleSheet != "" and inlineStyle == 0):
-    print "<HEAD><LINK href=\"" + styleSheet + "\" rel=\"stylesheet\" type=\"text/css\"></HEAD>"
+    print "<link href=\"" + styleSheet + "\" rel=\"stylesheet\" type=\"text/css\">"
   if (styleSheet != "" and inlineStyle == 1):
-    print "<HEAD><STYLE type=\"text/css\">"
+    print "<style type=\"text/css\">"
     csslinein = file.readline()
     while csslinein != "":
       print csslinein,
       csslinein = file.readline()
     file.close()
-    print "</STYLE></HEAD>"
-  print "<BODY>"
-  print "<DIV TITLE=\"DocTitle\">"
-  print "<H1>" + rstrip(lstrip(linein)) +"</H1>"
-  print "</DIV>"
-  print "<DIV TITLE=\"Main\">"
+    print "</style></head>"
+  print "<body>"
+  print "<div title=\"DocTitle\">"
+  print "<h1>" + rstrip(lstrip(linein)) +"</h1>"
+  print "</div>"
+  print "<div TITLE=\"Main\">"
 
 def printFooter():
   global slides
-  print "</DIV>"
+  print "</div>"
   if (slides == 0):
-	  print "<hr><font size=1>"
+          print "<div title=\"Footer\">"
+	  print "<hr>"
 	  print copyright
-	  print "</font><br>"
+	  print "<br>"
 	  print inputfile + "&nbsp&nbsp " + strftime("%Y/%m/%d %H:%M",localtime(time()))
-  print "</BODY></HTML>"
+          print "</div>"
+  print "</body></html>"
 
 def main():
   getArgs()
@@ -395,7 +395,6 @@ def main():
   if (slides == 0):
     firstLine = lstrip(rstrip(file.readline()))
     printHeader(firstLine)
-    printStyle(firstLine)
     linein = lstrip(rstrip(file.readline()))
     while linein != "":
       processLine(linein)
@@ -411,7 +410,6 @@ def main():
     for i in range (0,len(outline)-1):
       flatten(i)
     printHeader(flatoutline[0])
-    printStyle(flatoutline[0])
     for i in range (0,len(flatoutline)):
       processLine(flatoutline[i])
     
