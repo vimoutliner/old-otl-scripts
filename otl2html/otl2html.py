@@ -5,8 +5,8 @@
 # Copyright 2001 Cowboyz.com, Inc. All rights reserved
 #
 # ALPHA VERSION!!!
-# $Revision: 1.4 $
-# $Date: 2001/08/01 20:52:07 $
+# $Revision: 1.5 $
+# $Date: 2001/10/08 20:34:39 $
 # $Author: noel $
 # $Source: /home/noel/active/projects/NoelOTL/RCS/otl2html.py,v $
 # $Locker: noel $
@@ -34,7 +34,9 @@ from string import *
 
 formatMode = "simple"
 level = 0
+slides = 0
 inputFile = ""
+outline = []
 
 ###########################################################################
 # function definitions
@@ -48,12 +50,14 @@ def showUsage():
    print
    print "Usage:"
    print "otl2html.py inputfile"
-   print "otl2html.py [-t type] inputfile"
+   print "otl2html.py [-t type] [-s] inputfile"
+   print "    -t     Specify the format type"
    print "    Types: simple - uses HTML tags <H1> through <H9>"
    print "           bullets - uses HTML tags <UL> and <LI>"
    print "           numeric - uses HTML tags <OL> and <LI> for 1.1.1"
    print "           roman - uses HTML tags <OL> and <LI> for I.I.I"
    print "           alpha - uses HTML tags <OL> and <LI> for A.A.A"
+   print "    -s     Slide show output for use with htmlslides"
    print "output is on STDOUT"
    print
 
@@ -63,7 +67,7 @@ def showUsage():
 # output: possible console output for help, switch variables may be set
 
 def getArgs():
-  global inputfile, debug, formatMode
+  global inputfile, debug, formatMode, slides
   if (len(sys.argv) == 1): 
     showUsage()
     sys.exit()()
@@ -74,6 +78,8 @@ def getArgs():
         elif (sys.argv[i] == "-?"):		# test for help flag
 	  showUsage()				# show the help
 	  sys.exit()				# exit
+        elif (sys.argv[i] == "-s"):		# test for the slides flag
+	  slides = 1				# set the slides flag
         elif (sys.argv[i] == "-t"):		# test for the type flag
 	  formatMode = sys.argv[i+1]		# get the type
 	  i = i + 1				# increment the pointer
@@ -106,7 +112,7 @@ def getLineLevel(linein):
 # output: through standard out
 
 def processLine(linein):
-  global level, formatMode
+  global level, formatMode, slides
   lineLevel = getLineLevel(linein)
   if (formatMode == "simple"):
     print "<H" + str(lineLevel) + ">" + lstrip(linein) + "</H" + str(lineLevel) + ">"
@@ -136,12 +142,18 @@ def processLine(linein):
     if (rstrip(linein) == "----------------------------------------"):
       print "<br><hr><br>"
     else:
-      print "<LI>" + lstrip(linein)
+      if (slides == 0):
+        print "<LI>" + lstrip(linein)
+      else:
+        if (lineLevel == 1):
+          print "<ADDRESS>\n" + lstrip(linein) + "</ADDRESS>"
+        else:
+          print "<LI>" + lstrip(linein)
       
 def printHeader(linein):
-  print "<HTML><TITLE>" + linein + "</title>"
+  print "<HTML><TITLE>" + linein + "</TITLE>"
   print"<!--  $Revsion:$ -->"
-  print"<!--  $Date: 2001/08/01 20:52:07 $ -->"
+  print"<!--  $Date: 2001/10/08 20:34:39 $ -->"
   print"<!--  $Author: noel $ -->"
 
 def printStyle(linein):
