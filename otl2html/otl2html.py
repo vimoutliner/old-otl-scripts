@@ -5,10 +5,10 @@
 # Copyright 2001 Noel Henson All rights reserved
 #
 # ALPHA VERSION!!!
-# $Revision: 1.17 $
-# $Date: 2003/11/24 18:16:16 $
+# $Revision: 1.18 $
+# $Date: 2003/11/27 16:06:21 $
 # $Author: noel $
-# $Source: /home/noel/apps/NoelOTL/RCS/otl2html.py,v $
+# $Source: /home/noel/active/NoelOTL/RCS/otl2html.py,v $
 # $Locker: noel $
 
 ###########################################################################
@@ -92,10 +92,10 @@ def showUsage():
 def showVersion():
    print
    print "RCS"
-   print " $Revision: 1.17 $"
-   print " $Date: 2003/11/24 18:16:16 $"
+   print " $Revision: 1.18 $"
+   print " $Date: 2003/11/27 16:06:21 $"
    print " $Author: noel $"
-   print " $Source: /home/noel/apps/NoelOTL/RCS/otl2html.py,v $"
+   print " $Source: /home/noel/active/NoelOTL/RCS/otl2html.py,v $"
    print
 
 # getArgs
@@ -282,6 +282,9 @@ def processLine(linein):
           if (lineLevel == find(linein," ") +1 ) or \
 	  (lineLevel == find(linein,":") +1 ): 
 		  if (inBodyText == 0): handleBodyText(linein,lineLevel)
+		  elif (colonStrip(rstrip(lstrip(linein))) == ""):
+			  print "</p>"
+			  handleBodyText(linein,lineLevel)
             	  else: print colonStrip(rstrip(lstrip(linein))),
   	  else:
             if (inBodyText == 1):
@@ -356,8 +359,8 @@ def printHeader(linein):
   global styleSheet, inlineStyle
   print "<!DOCTYPE HTML PUBLIC \"-//W3C//DTD HTML 4.01//EN\" \"http://www.w3.org/TR/html4/strict.dtd\">"
   print "<html><head><title>" + linein + "</title>"
-  print"<!--  $Revision: 1.17 $ -->"
-  print"<!--  $Date: 2003/11/24 18:16:16 $ -->"
+  print"<!--  $Revision: 1.18 $ -->"
+  print"<!--  $Date: 2003/11/27 16:06:21 $ -->"
   print"<!--  $Author: noel $ -->"
   file = open(styleSheet,"r")
   if (styleSheet != "" and inlineStyle == 0):
