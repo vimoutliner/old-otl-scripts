@@ -5,11 +5,11 @@
 # Copyright 2001 Noel Henson All rights reserved
 #
 # ALPHA VERSION!!!
-# $Revision: 1.33 $
-# $Date: 2004/12/12 15:04:07 $
+# $Revision: 1.35 $
+# $Date: 2005/01/25 00:38:43 $
 # $Author: noel $
 # $Source: /home/noel/active/NoelOTL/RCS/otl2html.py,v $
-# $Locker:  $
+# $Locker: noel $
 
 ###########################################################################
 # Basic function
@@ -88,8 +88,8 @@ def showUsage():
 def showVersion():
    print
    print "RCS"
-   print " $Revision: 1.33 $"
-   print " $Date: 2004/12/12 15:04:07 $"
+   print " $Revision: 1.35 $"
+   print " $Date: 2005/01/25 00:38:43 $"
    print " $Author: noel $"
    print " $Source: /home/noel/active/NoelOTL/RCS/otl2html.py,v $"
    print
@@ -378,6 +378,8 @@ def beautifyLine(line):
 	  out = sub('\+\+\+(.*?)\+\+\+','<code>\\1</code>',out)
 	# out = replace(out,'---','<strike>',1)
 	  out = sub('\-\-\-(.*?)\-\-\-','<strike>\\1</strike>',out)
+	  out = sub('\(c\)','&copy;',out)
+	  out = sub('\(C\)','&copy;',out)
   return out
 
 # closeLevels
@@ -562,8 +564,8 @@ def printHeader(linein):
   global styleSheet, inlineStyle
   print "<!DOCTYPE HTML PUBLIC \"-//W3C//DTD HTML 4.01//EN\" \"http://www.w3.org/TR/html4/strict.dtd\">"
   print "<html><head><title>" + linein + "</title>"
-  print"<!--  $Revision: 1.33 $ -->"
-  print"<!--  $Date: 2004/12/12 15:04:07 $ -->"
+  print"<!--  $Revision: 1.35 $ -->"
+  print"<!--  $Date: 2005/01/25 00:38:43 $ -->"
   print"<!--  $Author: noel $ -->"
   file = open(styleSheet,"r")
   if (styleSheet != "" and inlineStyle == 0):
