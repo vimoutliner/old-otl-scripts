@@ -5,8 +5,8 @@
 # Copyright 2001 Cowboyz.com, Inc. All rights reserved
 #
 # ALPHA VERSION!!!
-# $Revision: 1.10 $
-# $Date: 2002/01/08 16:19:51 $
+# $Revision: 1.11 $
+# $Date: 2002/01/24 01:09:28 $
 # $Author: noel $
 # $Source: /home/noel/active/projects/NoelOTL/RCS/otl2html.py,v $
 # $Locker: noel $
@@ -78,8 +78,8 @@ def showUsage():
 def showVersion():
    print
    print "RCS"
-   print " $Revision: 1.10 $"
-   print " $Date: 2002/01/08 16:19:51 $"
+   print " $Revision: 1.11 $"
+   print " $Date: 2002/01/24 01:09:28 $"
    print " $Author: noel $"
    print " $Source: /home/noel/active/projects/NoelOTL/RCS/otl2html.py,v $"
    print
@@ -188,18 +188,20 @@ def processLine(linein):
       else:
         if (slides == 0):
           if (lineLevel == find(linein," ") +1 ):
-  	    print "<p>" + lstrip(linein)
+  	    print "<p>" + lstrip(linein) + "</p>"
   	  else:
             print "<LI>" + lstrip(linein)
         else:
           if (lineLevel == 1):
             if (linein[0] == " "):
-              print "<p>" + lstrip(linein)
+              print "<p>" + lstrip(linein) + "</p>"
             else:
-              print "<address>" + lstrip(linein) + "</address>\n"
+              print "<address>"
+	      print lstrip(linein)
+	      print "</address>\n"
           else:
             if (lineLevel == find(linein," ") +1):
-              print "<p>" + lstrip(linein)
+              print "<p>" + lstrip(linein) + "</p>"
             else:
               print "<LI>" + lstrip(linein)
       
@@ -242,7 +244,7 @@ def flatten(idx):
 def printHeader(linein):
   print "<HTML><TITLE>" + linein + "</TITLE>"
   print"<!--  $Revsion:$ -->"
-  print"<!--  $Date: 2002/01/08 16:19:51 $ -->"
+  print"<!--  $Date: 2002/01/24 01:09:28 $ -->"
   print"<!--  $Author: noel $ -->"
 
 def printStyle(linein):
