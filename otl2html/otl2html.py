@@ -5,8 +5,8 @@
 # Copyright 2001 Noel Henson All rights reserved
 #
 # ALPHA VERSION!!!
-# $Revision: 1.37 $
-# $Date: 2005/02/13 17:54:24 $
+# $Revision: 1.38 $
+# $Date: 2005/02/23 14:03:54 $
 # $Author: noel $
 # $Source: /home/noel/active/NoelOTL/RCS/otl2html.py,v $
 # $Locker: noel $
@@ -131,6 +131,14 @@ def showSyntax():
    print "			or with an image:"
    print "			[http://www.ted.com [http://www.ted.com/logo.png]]"
    print
+   print "   Note:"
+   print "	When using -D, the top-level headings become divisions (<div>)"
+   print "	and will be created using a class of the heading name. Spaces"
+   print "	are not allowed. If a top-level heading begins with '_', it"
+   print "	will not be shown but the division name will be the same as"
+   print "	without the '_'. Example: _Menu will have a division name of"
+   print "	Menu and will not be shown."
+   print
 
 # version
 # print the RCS version information
@@ -140,8 +148,8 @@ def showSyntax():
 def showVersion():
    print
    print "RCS"
-   print " $Revision: 1.37 $"
-   print " $Date: 2005/02/13 17:54:24 $"
+   print " $Revision: 1.38 $"
+   print " $Date: 2005/02/23 14:03:54 $"
    print " $Author: noel $"
    print
 
@@ -626,8 +634,8 @@ def printHeader(linein):
   global styleSheet, inlineStyle
   print "<!DOCTYPE HTML PUBLIC \"-//W3C//DTD HTML 4.01//EN\" \"http://www.w3.org/TR/html4/strict.dtd\">"
   print "<html><head><title>" + linein + "</title>"
-  print"<!--  $Revision: 1.37 $ -->"
-  print"<!--  $Date: 2005/02/13 17:54:24 $ -->"
+  print"<!--  $Revision: 1.38 $ -->"
+  print"<!--  $Date: 2005/02/23 14:03:54 $ -->"
   print"<!--  $Author: noel $ -->"
   file = open(styleSheet,"r")
   if (styleSheet != "" and inlineStyle == 0):
