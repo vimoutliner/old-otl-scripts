@@ -5,8 +5,8 @@
 # Copyright 2001 Noel Henson All rights reserved
 #
 # ALPHA VERSION!!!
-# $Revision: 1.21 $
-# $Date: 2004/11/18 22:57:50 $
+# $Revision: 1.22 $
+# $Date: 2004/11/19 13:28:54 $
 # $Author: noel $
 # $Source: /home/noel/active/NoelOTL/RCS/otl2html.py,v $
 # $Locker: noel $
@@ -92,8 +92,8 @@ def showUsage():
 def showVersion():
    print
    print "RCS"
-   print " $Revision: 1.21 $"
-   print " $Date: 2004/11/18 22:57:50 $"
+   print " $Revision: 1.22 $"
+   print " $Date: 2004/11/19 13:28:54 $"
    print " $Author: noel $"
    print " $Source: /home/noel/active/NoelOTL/RCS/otl2html.py,v $"
    print
@@ -197,6 +197,15 @@ def semicolonStrip(line):
 
 def dashStrip(line):
 	if (line[0] == "-"): return line[1:]
+        else: return line
+
+# plusStrip(line)
+# stip a leading '+', if it exists
+# input: line
+# output: returns a string with a stipped '+'
+
+def plusStrip(line):
+	if (line[0] == "+"): return line[1:]
         else: return line
 
 # handleBodyText
@@ -338,6 +347,9 @@ def processLine(linein):
 	      if (lineLevel == find(linein,"- ") +1 ): 
                 print " class=\"LB" + str(lineLevel) + "\"",
                 print ">" + lstrip(rstrip(dashStrip(lstrip(linein)))),
+	      elif (lineLevel == find(linein,"+ ") +1 ): 
+                print " class=\"LN" + str(lineLevel) + "\"",
+                print ">" + lstrip(rstrip(plusStrip(lstrip(linein)))),
 	      else:
                 print " class=\"L" + str(lineLevel) + "\"",
                 print ">" + rstrip(lstrip(linein)),
@@ -406,8 +418,8 @@ def printHeader(linein):
   global styleSheet, inlineStyle
   print "<!DOCTYPE HTML PUBLIC \"-//W3C//DTD HTML 4.01//EN\" \"http://www.w3.org/TR/html4/strict.dtd\">"
   print "<html><head><title>" + linein + "</title>"
-  print"<!--  $Revision: 1.21 $ -->"
-  print"<!--  $Date: 2004/11/18 22:57:50 $ -->"
+  print"<!--  $Revision: 1.22 $ -->"
+  print"<!--  $Date: 2004/11/19 13:28:54 $ -->"
   print"<!--  $Author: noel $ -->"
   file = open(styleSheet,"r")
   if (styleSheet != "" and inlineStyle == 0):
