@@ -5,8 +5,8 @@
 # Copyright 2001 Cowboyz.com, Inc. All rights reserved
 #
 # ALPHA VERSION!!!
-# $Revision: 1.5 $
-# $Date: 2001/10/08 20:34:39 $
+# $Revision: 1.6 $
+# $Date: 2001/10/09 22:22:39 $
 # $Author: noel $
 # $Source: /home/noel/active/projects/NoelOTL/RCS/otl2html.py,v $
 # $Locker: noel $
@@ -146,14 +146,14 @@ def processLine(linein):
         print "<LI>" + lstrip(linein)
       else:
         if (lineLevel == 1):
-          print "<ADDRESS>\n" + lstrip(linein) + "</ADDRESS>"
+          print "<address>\n" + lstrip(linein) + "</address>"
         else:
           print "<LI>" + lstrip(linein)
       
 def printHeader(linein):
   print "<HTML><TITLE>" + linein + "</TITLE>"
   print"<!--  $Revsion:$ -->"
-  print"<!--  $Date: 2001/10/08 20:34:39 $ -->"
+  print"<!--  $Date: 2001/10/09 22:22:39 $ -->"
   print"<!--  $Author: noel $ -->"
 
 def printStyle(linein):
