@@ -5,8 +5,8 @@
 # Copyright 2001 Noel Henson All rights reserved
 #
 # ALPHA VERSION!!!
-# $Revision: 1.15 $
-# $Date: 2003/10/24 22:28:13 $
+# $Revision: 1.16 $
+# $Date: 2003/11/23 01:01:48 $
 # $Author: noel $
 # $Source: /home/noel/apps/NoelOTL/RCS/otl2html.py,v $
 # $Locker: noel $
@@ -92,8 +92,8 @@ def showUsage():
 def showVersion():
    print
    print "RCS"
-   print " $Revision: 1.15 $"
-   print " $Date: 2003/10/24 22:28:13 $"
+   print " $Revision: 1.16 $"
+   print " $Date: 2003/11/23 01:01:48 $"
    print " $Author: noel $"
    print " $Source: /home/noel/apps/NoelOTL/RCS/otl2html.py,v $"
    print
@@ -172,6 +172,29 @@ def getLineTextLevel(linein):
   n = n + count(linein," ",0,x)			# count the spaces
   return(n+1)					# return the count + 1 (for level)
     
+# colonStrip(line)
+# stip a leading ':', if it exists
+# input: line
+# output: returns a string with a stipped ':'
+
+def colonStrip(line):
+	if (line[0] == ":"): return lstrip(line[1:])
+        else: return line
+
+# handleBodyText
+# print body text lines with a class indicating level, if style sheets
+# are being used. otherwise print just <P>
+# input: linein - a single line that may or may not have tabs at the beginning
+# output: through standard out
+
+def handleBodyText(linein,lineLevel):
+  global inBodyText
+  print "<P",
+  if (styleSheet != ""):
+    print " class=\"P" + str(lineLevel) + "\"",
+    inBodyText = 1
+  print ">" + colonStrip(rstrip(lstrip(linein))),
+
 # closeLevels
 # generate the number of </ul> or </ol> tags necessary to proplerly finish
 # input: format - a string indicating the mode to use for formatting
@@ -256,11 +279,10 @@ def processLine(linein):
         print "<br><br><hr><br>"
       else:
         if (slides == 0):
-          if (lineLevel == find(linein," ") +1 ):
-		  if (inBodyText == 0):
-		      print "<p>" + rstrip(lstrip(linein)),
-		      inBodyText = 1
-            	  else: print rstrip(lstrip(linein)),
+          if (lineLevel == find(linein," ") +1 ) or \
+	  (lineLevel == find(linein,":") +1 ): 
+		  if (inBodyText == 0): handleBodyText(linein,lineLevel)
+            	  else: print colonStrip(rstrip(lstrip(linein))),
   	  else:
             if (inBodyText == 1):
 	    	    print"</p>"
@@ -273,18 +295,17 @@ def processLine(linein):
           if (lineLevel == 1):
             if (linein[0] == " "):
 	      if (inBodyText == 0):
-  	        print "<p>" + rstrip(lstrip(linein)),
-	        inBodyText = 1
+		handleBodyText(linein,lineLevel)
 	      else: print rstrip(lstrip(linein)),
             else:
               print "<address>"
 	      print rstrip(lstrip(linein)),
 	      print "</address>\n"
           else:
-            if (lineLevel == find(linein," ") +1):
+	    if (lineLevel == find(linein," ") +1 ) or \
+	    (lineLevel == find(linein,":") +1 ): 
 		    if (inBodyText == 0):
-			print "<p>" + rstrip(lstrip(linein)),
-			inBodyText = 1
+		        handleBodyText(linein,lineLevel)
 	      	    else: print rstrip(lstrip(linein)),
             else:
               if (inBodyText == 1):
@@ -334,8 +355,8 @@ def flatten(idx):
 def printHeader(linein):
   print "<!DOCTYPE HTML PUBLIC \"-//W3C//DTD HTML 4.01//EN\" \"http://www.w3.org/TR/html4/strict.dtd\">"
   print "<HTML><TITLE>" + linein + "</TITLE>"
-  print"<!--  $Revision: 1.15 $ -->"
-  print"<!--  $Date: 2003/10/24 22:28:13 $ -->"
+  print"<!--  $Revision: 1.16 $ -->"
+  print"<!--  $Date: 2003/11/23 01:01:48 $ -->"
   print"<!--  $Author: noel $ -->"
 
 def printStyle(linein):
