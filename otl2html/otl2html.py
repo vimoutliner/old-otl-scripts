@@ -5,8 +5,8 @@
 # Copyright 2001 Noel Henson All rights reserved
 #
 # ALPHA VERSION!!!
-# $Revision: 1.12 $
-# $Date: 2002/01/25 19:12:13 $
+# $Revision: 1.13 $
+# $Date: 2002/07/02 16:15:29 $
 # $Author: noel $
 # $Source: /home/noel/apps/NoelOTL/RCS/otl2html.py,v $
 # $Locker: noel $
@@ -35,6 +35,7 @@ from time import *
 # global variables
 
 formatMode = "simple"
+copyright = "Copyright (C) 2002 Noel Henson All Rights Reserved"
 level = 0
 slides = 0
 hideComments = 0
@@ -66,6 +67,9 @@ def showUsage():
    print "    -c     Hide comments (line with [ as the first"
    print "           non-whitespace character. Ending with ] is"
    print "           optional."
+   print "    -C     Override the internal copyright notice with the"
+   print "           one supplied in the quoted string following this"
+   print "           flag. Single or double quotes can be used."
    print "    -v     Print version (RCS) information"
    print "output is on STDOUT"
    print
@@ -78,8 +82,8 @@ def showUsage():
 def showVersion():
    print
    print "RCS"
-   print " $Revision: 1.12 $"
-   print " $Date: 2002/01/25 19:12:13 $"
+   print " $Revision: 1.13 $"
+   print " $Date: 2002/07/02 16:15:29 $"
    print " $Author: noel $"
    print " $Source: /home/noel/apps/NoelOTL/RCS/otl2html.py,v $"
    print
@@ -90,7 +94,7 @@ def showVersion():
 # output: possible console output for help, switch variables may be set
 
 def getArgs():
-  global inputfile, debug, formatMode, slides, hideComments
+  global inputfile, debug, formatMode, slides, hideComments, copyright
   if (len(sys.argv) == 1): 
     showUsage()
     sys.exit()()
@@ -107,6 +111,9 @@ def getArgs():
 	  hideComments = 1			# set the comments flag
         elif (sys.argv[i] == "-t"):		# test for the type flag
 	  formatMode = sys.argv[i+1]		# get the type
+	  i = i + 1				# increment the pointer
+        elif (sys.argv[i] == "-C"):		# test for the type flag
+	  copyright = sys.argv[i+1]		# get the type
 	  i = i + 1				# increment the pointer
         elif (sys.argv[i] == "--help"):
 	  showUsage()
@@ -244,7 +251,7 @@ def flatten(idx):
 def printHeader(linein):
   print "<HTML><TITLE>" + linein + "</TITLE>"
   print"<!--  $Revsion:$ -->"
-  print"<!--  $Date: 2002/01/25 19:12:13 $ -->"
+  print"<!--  $Date: 2002/07/02 16:15:29 $ -->"
   print"<!--  $Author: noel $ -->"
 
 def printStyle(linein):
@@ -258,8 +265,9 @@ def printFooter():
   global slides
   print "</DIV>"
   if (slides == 0):
-	  print "<br><br><br><font size=1>Copyright (C) 2002 Noel Henson "
-	  print "All Rights Reserved</font><br>"
+	  print "<br><br><br><font size=1>"
+	  print copyright
+	  print "</font><br>"
 	  print inputfile + "&nbsp&nbsp " + strftime("%Y/%m/%d %H:%M",localtime(time()))
   print "</BODY></HTML>"
 
