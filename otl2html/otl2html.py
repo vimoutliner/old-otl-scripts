@@ -5,8 +5,8 @@
 # Copyright 2001 Noel Henson All rights reserved
 #
 # ALPHA VERSION!!!
-# $Revision: 1.26 $
-# $Date: 2004/11/27 20:52:42 $
+# $Revision: 1.27 $
+# $Date: 2004/11/27 22:13:09 $
 # $Author: noel $
 # $Source: /home/noel/active/NoelOTL/RCS/otl2html.py,v $
 # $Locker: noel $
@@ -83,8 +83,8 @@ def showUsage():
 def showVersion():
    print
    print "RCS"
-   print " $Revision: 1.26 $"
-   print " $Date: 2004/11/27 20:52:42 $"
+   print " $Revision: 1.27 $"
+   print " $Date: 2004/11/27 22:13:09 $"
    print " $Author: noel $"
    print " $Source: /home/noel/active/NoelOTL/RCS/otl2html.py,v $"
    print
@@ -233,32 +233,73 @@ def handlePreformattedText(linein,lineLevel):
     inBodyText = 2
   print ">" + semicolonStrip(rstrip(lstrip(linein))),
 
+
+# isAlignRight
+# return flag
+# input: coldata, a string
+
+def isAlignRight(coldata):
+  l = len(coldata)
+  if (coldata[0:2] == "  ") and (coldata[l-2:l] != "  "): return 1
+  else: return 0
+
+# isAlignLeft
+# return flag
+# input: coldata, a string
+
+def isAlignLeft(coldata):
+  l = len(coldata)
+  if (coldata[0:2] != "  ") and (coldata[l-2:l] == "  "): return 1
+  else: return 0
+
+# isAlignCenter
+# return flag
+# input: coldata, a string
+
+def isAlignCenter(coldata):
+  l = len(coldata)
+  if (coldata[0:2] == "  ") and (coldata[l-2:l] == "  "): return 1
+  else: return 0
+
+# getColumnAlignment(string)
+# return string
+# input: coldata
+# output: <td align="left"> or <td align="right"> or <td align="center"> or <td>
+
+def getColumnAlignment(coldata):
+	if isAlignCenter(coldata): return '<td align="center">'
+	if isAlignRight(coldata): return '<td align="right">'
+	if isAlignLeft(coldata): return '<td align="left">'
+	return '<td>'
+
 # handleTableColumns
 # return the souce for a row's columns
 # input: linein - a single line that may or may not have tabs at the beginning
 # output: string with the columns' source
 
 def handleTableColumns(linein,lineLevel):
-  out = lstrip(rstrip(linein))
-  out = replace(out,' |  ','</td><td align="right">')
-  out = replace(out,' | ','</td><td>')
-  out = replace(out,'|  ','<td align="right">')
-  out = replace(out,'| ','<td>')
-  out = replace(out,' |','</td>')
+  out = ""
+  coldata = lstrip(rstrip(linein))
+  coldata = split(coldata,"|")
+  for i in range(1,len(coldata)-1):
+		out += getColumnAlignment(coldata[i])
+		out += lstrip(rstrip(coldata[i]))+'</td>'
   return out 
 
 # handleTableHeaders
-# return the source for a header row's columns
+# return the souce for a row's headers
 # input: linein - a single line that may or may not have tabs at the beginning
 # output: string with the columns' source
 
 def handleTableHeaders(linein,lineLevel):
-  out = lstrip(rstrip(linein))
-  out = replace(out,' |  ','</th><th align="right">')
-  out = replace(out,' | ','</th><th>')
-  out = replace(out,'||  ','<th align="right">')
-  out = replace(out,'|| ','<th>')
-  out = replace(out,' |','</th>')
+  out = ""
+  coldata = lstrip(rstrip(linein))
+  coldata = split(coldata,"|")
+  for i in range(2,len(coldata)-1):
+		out += getColumnAlignment(coldata[i])
+		out += lstrip(rstrip(coldata[i]))+'</td>'
+  out = replace(out,'<td','<th')
+  out = replace(out,'</td','</th')
   return out 
 
 # handleTableRow
@@ -474,8 +515,8 @@ def printHeader(linein):
   global styleSheet, inlineStyle
   print "<!DOCTYPE HTML PUBLIC \"-//W3C//DTD HTML 4.01//EN\" \"http://www.w3.org/TR/html4/strict.dtd\">"
   print "<html><head><title>" + linein + "</title>"
-  print"<!--  $Revision: 1.26 $ -->"
-  print"<!--  $Date: 2004/11/27 20:52:42 $ -->"
+  print"<!--  $Revision: 1.27 $ -->"
+  print"<!--  $Date: 2004/11/27 22:13:09 $ -->"
   print"<!--  $Author: noel $ -->"
   file = open(styleSheet,"r")
   if (styleSheet != "" and inlineStyle == 0):
