@@ -5,8 +5,8 @@
 # Copyright 2001 Noel Henson All rights reserved
 #
 # ALPHA VERSION!!!
-# $Revision: 1.36 $
-# $Date: 2005/02/09 16:15:00 $
+# $Revision: 1.37 $
+# $Date: 2005/02/13 17:54:24 $
 # $Author: noel $
 # $Source: /home/noel/active/NoelOTL/RCS/otl2html.py,v $
 # $Locker: noel $
@@ -79,7 +79,57 @@ def showUsage():
    print "                    one supplied in the quoted string following this"
    print "                    flag. Single or double quotes can be used."
    print "    -v              Print version (RCS) information."
+   print "    -H              Show the file syntax help."
    print "output is on STDOUT"
+   print
+
+def showSyntax():
+   print
+   print "Syntax"
+   print "Syntax is Vim Outliner's normal syntax. The following are supported:"
+   print
+   print "   Text"
+   print "	:	Body text marker. This text will wrap in the output."
+   print "	;	Preformmated text. This text will will not wrap."
+   print
+   print "   Tables"
+   print "	||	Table header line."
+   print "	|	Table and table columns. Example:"
+   print "			|| Name | Age | Animal |"
+   print "			| Kirby | 9 | Dog |"
+   print "			| Sparky | 1 | Bird |"
+   print "			| Sophia | 8 | Cat |"
+   print "			This will cause an item to be left-justified."
+   print "				| whatever  |"
+   print "			This will cause an item to be right-justified."
+   print "				|  whatever |"
+   print "			This will cause an item to be centered."
+   print "				| whatever |"
+   print
+   print "   Character Styles"
+   print "	**	Bold. Example: **Bold Text**"
+   print "	//	Italic. Example: //Italic Text//"
+   print "	+++	Highlight. Example: +++Highlight Text+++"
+   print "	---	Strikeout. Example: ---Strikeout Text---"
+   print " 	Insane	---+++//**Wow! This is insane!**//+++//"
+   print "		Just remember to keep it all on one line."
+   print "   Horizontal Rule"
+   print "	----------------------------------------  (40 dashes)."
+   print "   Copyright"
+   print "	(c) or (C)	Converts to a standard copyright symbol."
+   print
+   print "   Including Images (for web pages)"
+   print "	[imagename]	Examples:"
+   print "			[logo.gif] [photo.jpg] [car.png]"
+   print "			[http://i.a.cnn.net/cnn/.element/img/1.1/logo/logl.gif]"
+   print "			or from a database:"
+   print "			[http://www.lab.com/php/image.php?id=4]"
+   print
+   print "   Including links (for web pages)"
+   print "	[link text-or-image]	Examples:"
+   print "			[about.html About] [http://www.cnn.com CNN]"
+   print "			or with an image:"
+   print "			[http://www.ted.com [http://www.ted.com/logo.png]]"
    print
 
 # version
@@ -90,8 +140,8 @@ def showUsage():
 def showVersion():
    print
    print "RCS"
-   print " $Revision: 1.36 $"
-   print " $Date: 2005/02/09 16:15:00 $"
+   print " $Revision: 1.37 $"
+   print " $Date: 2005/02/13 17:54:24 $"
    print " $Author: noel $"
    print
 
@@ -137,6 +187,9 @@ def getArgs():
 	  sys.exit()
         elif (sys.argv[i] == "-h"):
 	  showUsage()
+	  sys.exit()
+        elif (sys.argv[i] == "-H"):
+	  showSyntax()
 	  sys.exit()
         elif (sys.argv[i] == "-v"):
 	  showVersion()
@@ -573,8 +626,8 @@ def printHeader(linein):
   global styleSheet, inlineStyle
   print "<!DOCTYPE HTML PUBLIC \"-//W3C//DTD HTML 4.01//EN\" \"http://www.w3.org/TR/html4/strict.dtd\">"
   print "<html><head><title>" + linein + "</title>"
-  print"<!--  $Revision: 1.36 $ -->"
-  print"<!--  $Date: 2005/02/09 16:15:00 $ -->"
+  print"<!--  $Revision: 1.37 $ -->"
+  print"<!--  $Date: 2005/02/13 17:54:24 $ -->"
   print"<!--  $Author: noel $ -->"
   file = open(styleSheet,"r")
   if (styleSheet != "" and inlineStyle == 0):
