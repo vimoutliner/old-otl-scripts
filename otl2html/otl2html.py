@@ -5,8 +5,8 @@
 # Copyright 2001 Noel Henson All rights reserved
 #
 # ALPHA VERSION!!!
-# $Revision: 1.23 $
-# $Date: 2004/11/22 23:59:04 $
+# $Revision: 1.24 $
+# $Date: 2004/11/24 02:35:29 $
 # $Author: noel $
 # $Source: /home/noel/active/NoelOTL/RCS/otl2html.py,v $
 # $Locker: noel $
@@ -92,8 +92,8 @@ def showUsage():
 def showVersion():
    print
    print "RCS"
-   print " $Revision: 1.23 $"
-   print " $Date: 2004/11/22 23:59:04 $"
+   print " $Revision: 1.24 $"
+   print " $Date: 2004/11/24 02:35:29 $"
    print " $Author: noel $"
    print " $Source: /home/noel/active/NoelOTL/RCS/otl2html.py,v $"
    print
@@ -260,7 +260,7 @@ def handleTableColumns(linein,lineLevel):
 # handleTableRow
 # print a table row, starting with a <TABLE> tag if necessary
 # input: linein - a single line that may or may not have tabs at the beginning
-# output: through standard out
+# output: out
 
 def handleTableRow(linein,lineLevel):
   out = "<tr>"
@@ -279,6 +279,30 @@ def handleTable(linein,lineLevel):
 	  print "<table class=\"TAB" + str(lineLevel) + "\">"
 	  inBodyText = 3
   print handleTableRow(linein,lineLevel), 
+
+# beautifyLine(line)
+# replace some simle tags with with html beautifiers
+# input: line - a single line that may or may not have tabs at the beginning
+# output: line
+
+def beautifyLine(line):
+  out = line
+  line = ""
+
+  while (line != out):
+
+	  line = out
+	  out = replace(out,'**','<strong>',1)
+	  out = replace(out,'//','<i>',1)
+	  out = replace(out,'+++','<code>',1)
+	  out = replace(out,'---','<strike>',1)
+
+	  out = replace(out,'**','</strong>',1)
+	  out = replace(out,'//','</i>',1)
+	  out = replace(out,'+++','</code>',1)
+	  out = replace(out,'---','</strike>',1)
+
+  return out
 
 # closeLevels
 # generate the number of </ul> or </ol> tags necessary to proplerly finish
@@ -474,8 +498,8 @@ def printHeader(linein):
   global styleSheet, inlineStyle
   print "<!DOCTYPE HTML PUBLIC \"-//W3C//DTD HTML 4.01//EN\" \"http://www.w3.org/TR/html4/strict.dtd\">"
   print "<html><head><title>" + linein + "</title>"
-  print"<!--  $Revision: 1.23 $ -->"
-  print"<!--  $Date: 2004/11/22 23:59:04 $ -->"
+  print"<!--  $Revision: 1.24 $ -->"
+  print"<!--  $Date: 2004/11/24 02:35:29 $ -->"
   print"<!--  $Author: noel $ -->"
   file = open(styleSheet,"r")
   if (styleSheet != "" and inlineStyle == 0):
@@ -511,20 +535,20 @@ def main():
   flatouline = []
   file = open(inputfile,"r")
   if (slides == 0):
-    firstLine = lstrip(rstrip(file.readline()))
+    firstLine = beautifyLine(lstrip(rstrip(file.readline())))
     printHeader(firstLine)
-    linein = lstrip(rstrip(file.readline()))
+    linein = beautifyLine(lstrip(rstrip(file.readline())))
     while linein != "":
       processLine(linein)
-      linein = file.readline()
+      linein = beautifyLine(file.readline())
     closeLevels()
   else:
-    linein = lstrip(rstrip(file.readline()))
+    linein = beautifyLine(lstrip(rstrip(file.readline())))
     outline.append(linein)
     linein = lstrip(rstrip(file.readline()))
     while linein != "":
       outline.append("\t" + linein)
-      linein = rstrip(file.readline())
+      linein = beautifyLine(rstrip(file.readline()))
     for i in range (0,len(outline)-1):
       flatten(i)
     printHeader(flatoutline[0])
