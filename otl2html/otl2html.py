@@ -5,8 +5,8 @@
 # Copyright 2001 Noel Henson All rights reserved
 #
 # ALPHA VERSION!!!
-# $Revision: 1.25 $
-# $Date: 2004/11/24 15:04:16 $
+# $Revision: 1.26 $
+# $Date: 2004/11/27 20:52:42 $
 # $Author: noel $
 # $Source: /home/noel/active/NoelOTL/RCS/otl2html.py,v $
 # $Locker: noel $
@@ -61,15 +61,6 @@ def showUsage():
    print "Usage:"
    print "otl2html.py [options] inputfile > outputfile"
    print "Options"
-   print "    -t type        Specify the format type."
-   print "                   Types:"
-   print "                      simple - uses HTML tags <h1> through <h9>"
-   print "                      bullets - uses HTML tags <ul> and <li>"
-   print "                      numeric - uses HTML tags <ol> and <li> for 1.1.1"
-   print "                      roman - uses HTML tags <ol> and <li> for I.I.I"
-   print "                      alpha - uses HTML tags <ol> and <li> for A.A.A"
-   print "                      indent - uses HTML tags <ol> and <li>"
-   print "                      Not compatible with -s or -S."
    print "    -p              Presentation: slide show output for use with HtmlSlides."
    print "    -s sheet        Use the specified style sheet with a link. Not compatible"
    print "                    with -t."
@@ -92,8 +83,8 @@ def showUsage():
 def showVersion():
    print
    print "RCS"
-   print " $Revision: 1.25 $"
-   print " $Date: 2004/11/24 15:04:16 $"
+   print " $Revision: 1.26 $"
+   print " $Date: 2004/11/27 20:52:42 $"
    print " $Author: noel $"
    print " $Source: /home/noel/active/NoelOTL/RCS/otl2html.py,v $"
    print
@@ -119,9 +110,6 @@ def getArgs():
 	  slides = 1				# set the slides flag
         elif (sys.argv[i] == "-c"):		# test for the comments flag
 	  hideComments = 1			# set the comments flag
-        elif (sys.argv[i] == "-t"):		# test for the type flag
-	  formatMode = sys.argv[i+1]		# get the type
-	  i = i + 1				# increment the pointer
         elif (sys.argv[i] == "-C"):		# test for the copyright flag
 	  copyright = sys.argv[i+1]		# get the copyright
 	  i = i + 1				# increment the pointer
@@ -246,25 +234,43 @@ def handlePreformattedText(linein,lineLevel):
   print ">" + semicolonStrip(rstrip(lstrip(linein))),
 
 # handleTableColumns
-# print a table row, starting with a <TABLE> tag if necessary
+# return the souce for a row's columns
 # input: linein - a single line that may or may not have tabs at the beginning
-# output: through standard out
+# output: string with the columns' source
 
 def handleTableColumns(linein,lineLevel):
   out = lstrip(rstrip(linein))
+  out = replace(out,' |  ','</td><td align="right">')
   out = replace(out,' | ','</td><td>')
+  out = replace(out,'|  ','<td align="right">')
   out = replace(out,'| ','<td>')
   out = replace(out,' |','</td>')
   return out 
 
+# handleTableHeaders
+# return the source for a header row's columns
+# input: linein - a single line that may or may not have tabs at the beginning
+# output: string with the columns' source
+
+def handleTableHeaders(linein,lineLevel):
+  out = lstrip(rstrip(linein))
+  out = replace(out,' |  ','</th><th align="right">')
+  out = replace(out,' | ','</th><th>')
+  out = replace(out,'||  ','<th align="right">')
+  out = replace(out,'|| ','<th>')
+  out = replace(out,' |','</th>')
+  return out 
+
 # handleTableRow
-# print a table row, starting with a <TABLE> tag if necessary
+# print a table row
 # input: linein - a single line that may or may not have tabs at the beginning
 # output: out
 
 def handleTableRow(linein,lineLevel):
   out = "<tr>"
-  out += handleTableColumns(linein,lineLevel)
+  if (lineLevel == find(linein,"|| ") +1 ): 
+         out += handleTableHeaders(linein,lineLevel)
+  else:  out += handleTableColumns(linein,lineLevel)
   out += "</tr>"
   return out
 
@@ -338,32 +344,9 @@ def processLine(linein):
   if (lstrip(linein) == ""): return
   lineLevel = getLineLevel(linein)
   if ((hideComments == 0) or (lineLevel != (find(linein,"[")+1))):
-    if (formatMode == "simple"):
-      print "<h" + str(lineLevel) + ">" + lstrip(linein) + "</h" + str(lineLevel) + ">"
-    else:
       if (lineLevel > level): # increasing depth
        while (lineLevel > level):
-    	if (formatMode == "bullets"):
-          if (inBodyText == 1):
-	    print"</p>"
-	    inBodyText = 0
-    	  print "<ul>"
-    	elif (formatMode == "roman"):
-          if (inBodyText == 1):
-	    print"</p>"
-	    inBodyText = 0
-    	  print "<ol type=\"I\">"
-    	elif (formatMode == "numeric"):
-          if (inBodyText == 1):
-	    print"</p>"
-	    inBodyText = 0
-    	  print "<ol type=\"1\">"
-    	elif (formatMode == "alpha"):
-          if (inBodyText == 1):
-	    print"</p>"
-	    inBodyText = 0
-    	  print "<ol type=\"A\">"
-    	elif (formatMode == "indent"):
+    	if (formatMode == "indent"):
           if (inBodyText == 1):
 	    print"</p>"
 	    inBodyText = 0
@@ -373,29 +356,19 @@ def processLine(linein):
     	level = level + 1
       elif (lineLevel < level): # decreasing depth
        while (lineLevel < level):
-  	if (formatMode == "bullets"):
-          if (inBodyText == 1):
-	    print"</p>"
-	    inBodyText = 0
-  	  print "</ul>"
-  	else:
-          if (inBodyText == 1):
-	    print"</p>"
-	    inBodyText = 0
-          elif (inBodyText == 2):
-	    print"</pre>"
-	    inBodyText = 0
-          elif (inBodyText == 3):
-	    print"</table>"
-	    inBodyText = 0
-  	  print "</ol>"
+        if (inBodyText == 1):
+	  print"</p>"
+	  inBodyText = 0
+        elif (inBodyText == 2):
+	  print"</pre>"
+	  inBodyText = 0
+        elif (inBodyText == 3):
+	  print"</table>"
+	  inBodyText = 0
+  	print "</ol>"
   	level = level - 1
-      else:
-        print
-      if (lstrip(rstrip(linein)) == "----------------------------------------"):
-        print "<br><br><hr><br>"
-      else:
-        if (slides == 0):
+      else: print
+      if (slides == 0):
           if (lineLevel == find(linein," ") +1 ) or \
 	  (lineLevel == find(linein,":") +1 ): 
 		  if (inBodyText == 0): handleBodyText(linein,lineLevel)
@@ -436,7 +409,7 @@ def processLine(linein):
 	      else:
                 print " class=\"L" + str(lineLevel) + "\"",
                 print ">" + rstrip(lstrip(linein)),
-        else:
+      else:
           if (lineLevel == 1):
             if (linein[0] == " "):
 	      if (inBodyText == 0):
@@ -501,8 +474,8 @@ def printHeader(linein):
   global styleSheet, inlineStyle
   print "<!DOCTYPE HTML PUBLIC \"-//W3C//DTD HTML 4.01//EN\" \"http://www.w3.org/TR/html4/strict.dtd\">"
   print "<html><head><title>" + linein + "</title>"
-  print"<!--  $Revision: 1.25 $ -->"
-  print"<!--  $Date: 2004/11/24 15:04:16 $ -->"
+  print"<!--  $Revision: 1.26 $ -->"
+  print"<!--  $Date: 2004/11/27 20:52:42 $ -->"
   print"<!--  $Author: noel $ -->"
   file = open(styleSheet,"r")
   if (styleSheet != "" and inlineStyle == 0):
