@@ -5,8 +5,8 @@
 # Copyright 2001 Noel Henson All rights reserved
 #
 # ALPHA VERSION!!!
-# $Revision: 1.30 $
-# $Date: 2004/12/02 01:02:48 $
+# $Revision: 1.31 $
+# $Date: 2004/12/03 19:06:51 $
 # $Author: noel $
 # $Source: /home/noel/active/NoelOTL/RCS/otl2html.py,v $
 # $Locker: noel $
@@ -87,8 +87,8 @@ def showUsage():
 def showVersion():
    print
    print "RCS"
-   print " $Revision: 1.30 $"
-   print " $Date: 2004/12/02 01:02:48 $"
+   print " $Revision: 1.31 $"
+   print " $Date: 2004/12/03 19:06:51 $"
    print " $Author: noel $"
    print " $Source: /home/noel/active/NoelOTL/RCS/otl2html.py,v $"
    print
@@ -341,8 +341,8 @@ def handleTable(linein,lineLevel):
 def linkOrImage(line):
   line = sub('\[(\S+?)\]','<img src="\\1" alt="\\1">',line)
   line = sub('\[(\S+)\s(.*?)\]','<a href="\\1">\\2</a>',line)
-  line = replace(line,'<img src="X">','[X]')
-  line = replace(line,'<img src="_">','[_]')
+  line = replace(line,'<img src="X" alt="X">','[X]')
+  line = replace(line,'<img src="_" alt="_">','[_]')
   return line
 
 # divName
@@ -552,8 +552,8 @@ def printHeader(linein):
   global styleSheet, inlineStyle
   print "<!DOCTYPE HTML PUBLIC \"-//W3C//DTD HTML 4.01//EN\" \"http://www.w3.org/TR/html4/strict.dtd\">"
   print "<html><head><title>" + linein + "</title>"
-  print"<!--  $Revision: 1.30 $ -->"
-  print"<!--  $Date: 2004/12/02 01:02:48 $ -->"
+  print"<!--  $Revision: 1.31 $ -->"
+  print"<!--  $Date: 2004/12/03 19:06:51 $ -->"
   print"<!--  $Author: noel $ -->"
   file = open(styleSheet,"r")
   if (styleSheet != "" and inlineStyle == 0):
