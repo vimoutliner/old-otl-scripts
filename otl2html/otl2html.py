@@ -5,8 +5,8 @@
 # Copyright 2001 Noel Henson All rights reserved
 #
 # ALPHA VERSION!!!
-# $Revision: 1.24 $
-# $Date: 2004/11/24 02:35:29 $
+# $Revision: 1.25 $
+# $Date: 2004/11/24 15:04:16 $
 # $Author: noel $
 # $Source: /home/noel/active/NoelOTL/RCS/otl2html.py,v $
 # $Locker: noel $
@@ -92,8 +92,8 @@ def showUsage():
 def showVersion():
    print
    print "RCS"
-   print " $Revision: 1.24 $"
-   print " $Date: 2004/11/24 02:35:29 $"
+   print " $Revision: 1.25 $"
+   print " $Date: 2004/11/24 15:04:16 $"
    print " $Author: noel $"
    print " $Source: /home/noel/active/NoelOTL/RCS/otl2html.py,v $"
    print
@@ -286,6 +286,9 @@ def handleTable(linein,lineLevel):
 # output: line
 
 def beautifyLine(line):
+  if (lstrip(rstrip(line)) == "----------------------------------------"):
+        return "<br><hr><br>"
+  
   out = line
   line = ""
 
@@ -498,8 +501,8 @@ def printHeader(linein):
   global styleSheet, inlineStyle
   print "<!DOCTYPE HTML PUBLIC \"-//W3C//DTD HTML 4.01//EN\" \"http://www.w3.org/TR/html4/strict.dtd\">"
   print "<html><head><title>" + linein + "</title>"
-  print"<!--  $Revision: 1.24 $ -->"
-  print"<!--  $Date: 2004/11/24 02:35:29 $ -->"
+  print"<!--  $Revision: 1.25 $ -->"
+  print"<!--  $Date: 2004/11/24 15:04:16 $ -->"
   print"<!--  $Author: noel $ -->"
   file = open(styleSheet,"r")
   if (styleSheet != "" and inlineStyle == 0):
