@@ -5,8 +5,8 @@
 # Copyright 2001 Cowboyz.com, Inc. All rights reserved
 #
 # ALPHA VERSION!!!
-# $Revision:$
-# $Date: 2001/08/01 20:21:18 $
+# $Revision: 1.3 $
+# $Date: 2001/08/01 20:22:00 $
 # $Author: noel $
 # $Source: /home/noel/active/projects/NoelOTL/RCS/otl2html.py,v $
 # $Locker: noel $
@@ -138,7 +138,7 @@ def processLine(linein):
 def printHeader(linein):
   print "<HTML><TITLE>" + linein + "</title>"
   print"<!--  $Revsion:$ -->"
-  print"<!--  $Date: 2001/08/01 20:21:18 $ -->"
+  print"<!--  $Date: 2001/08/01 20:22:00 $ -->"
   print"<!--  $Author: noel $ -->"
 
 def printStyle(linein):
@@ -156,10 +156,10 @@ def printFooter():
 def main():
   getArgs()
   file = open(inputfile,"r")
-  firstLine = file.readline()
+  firstLine = lstrip(file.readline())
   printHeader(firstLine)
   printStyle(firstLine)
-  linein = file.readline()
+  linein = lstrip(file.readline())
   while linein != "":
     processLine(linein)
     linein = file.readline()
