@@ -5,8 +5,8 @@
 # Copyright 2001 Noel Henson All rights reserved
 #
 # ALPHA VERSION!!!
-# $Revision: 1.31 $
-# $Date: 2004/12/03 19:06:51 $
+# $Revision: 1.32 $
+# $Date: 2004/12/11 19:35:48 $
 # $Author: noel $
 # $Source: /home/noel/active/NoelOTL/RCS/otl2html.py,v $
 # $Locker: noel $
@@ -87,8 +87,8 @@ def showUsage():
 def showVersion():
    print
    print "RCS"
-   print " $Revision: 1.31 $"
-   print " $Date: 2004/12/03 19:06:51 $"
+   print " $Revision: 1.32 $"
+   print " $Date: 2004/12/11 19:35:48 $"
    print " $Author: noel $"
    print " $Source: /home/noel/active/NoelOTL/RCS/otl2html.py,v $"
    print
@@ -286,7 +286,7 @@ def getColumnAlignment(coldata):
 def handleTableColumns(linein,lineLevel):
   out = ""
   coldata = lstrip(rstrip(linein))
-  coldata = split(coldata,"|")
+  coldata = coldata.split("|")
   for i in range(1,len(coldata)-1):
 		out += getColumnAlignment(coldata[i])
 		out += lstrip(rstrip(coldata[i]))+'</td>'
@@ -300,7 +300,7 @@ def handleTableColumns(linein,lineLevel):
 def handleTableHeaders(linein,lineLevel):
   out = ""
   coldata = lstrip(rstrip(linein))
-  coldata = split(coldata,"|")
+  coldata = coldata.split("|")
   for i in range(2,len(coldata)-1):
 		out += getColumnAlignment(coldata[i])
 		out += lstrip(rstrip(coldata[i]))+'</td>'
@@ -552,8 +552,8 @@ def printHeader(linein):
   global styleSheet, inlineStyle
   print "<!DOCTYPE HTML PUBLIC \"-//W3C//DTD HTML 4.01//EN\" \"http://www.w3.org/TR/html4/strict.dtd\">"
   print "<html><head><title>" + linein + "</title>"
-  print"<!--  $Revision: 1.31 $ -->"
-  print"<!--  $Date: 2004/12/03 19:06:51 $ -->"
+  print"<!--  $Revision: 1.32 $ -->"
+  print"<!--  $Date: 2004/12/11 19:35:48 $ -->"
   print"<!--  $Author: noel $ -->"
   file = open(styleSheet,"r")
   if (styleSheet != "" and inlineStyle == 0):
