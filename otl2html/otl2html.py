@@ -5,8 +5,8 @@
 # Copyright 2001 Noel Henson All rights reserved
 #
 # ALPHA VERSION!!!
-# $Revision: 1.35 $
-# $Date: 2005/01/25 00:38:43 $
+# $Revision: 1.36 $
+# $Date: 2005/02/09 16:15:00 $
 # $Author: noel $
 # $Source: /home/noel/active/NoelOTL/RCS/otl2html.py,v $
 # $Locker: noel $
@@ -44,6 +44,7 @@ div = 0
 silentdiv = 0
 slides = 0
 hideComments = 0
+showTitle = 1
 inputFile = ""
 outline = []
 flatoutline = []
@@ -71,6 +72,7 @@ def showUsage():
    print "                    with -t."
    print "    -S sheet        Include the specified style sheet in-line the output. For"
    print "                    encapsulated style. Not compatible with -t. Hide"
+   print "    -T              The first line is not the title. Treat it as outline data"
    print "    -c              comments (line with [ as the first non-whitespace"
    print "                    character. Ending with ] is optional."
    print "    -C copyright    Override the internal copyright notice with the"
@@ -88,10 +90,9 @@ def showUsage():
 def showVersion():
    print
    print "RCS"
-   print " $Revision: 1.35 $"
-   print " $Date: 2005/01/25 00:38:43 $"
+   print " $Revision: 1.36 $"
+   print " $Date: 2005/02/09 16:15:00 $"
    print " $Author: noel $"
-   print " $Source: /home/noel/active/NoelOTL/RCS/otl2html.py,v $"
    print
 
 # getArgs
@@ -100,7 +101,7 @@ def showVersion():
 # output: possible console output for help, switch variables may be set
 
 def getArgs():
-  global inputfile, debug, formatMode, slides, hideComments, copyright, styleSheet, inlineStyle, div
+  global inputfile, debug, formatMode, slides, hideComments, copyright, styleSheet, inlineStyle, div, showTitle
   if (len(sys.argv) == 1): 
     showUsage()
     sys.exit()()
@@ -115,6 +116,8 @@ def getArgs():
 	  slides = 1				# set the slides flag
         elif (sys.argv[i] == "-D"):		# test for the divisions flag
 	  div = 1				# set the divisions flag
+        elif (sys.argv[i] == "-T"):		# test for the no-title flag
+	  showTitle = 0				# clear the show-title flag
         elif (sys.argv[i] == "-c"):		# test for the comments flag
 	  hideComments = 1			# set the comments flag
         elif (sys.argv[i] == "-C"):		# test for the copyright flag
@@ -220,6 +223,8 @@ def plusStrip(line):
 
 def handleBodyText(linein,lineLevel):
   global inBodyText
+  if (inBodyText == 2): print "</pre>"
+  if (inBodyText == 3): print "</table>"
   print "<p",
   if (styleSheet != ""):
     print " class=\"P" + str(lineLevel) + "\"",
@@ -234,6 +239,8 @@ def handleBodyText(linein,lineLevel):
 
 def handlePreformattedText(linein,lineLevel):
   global inBodyText
+  if (inBodyText == 1): print "</p>"
+  if (inBodyText == 3): print "</table>"
   print "<pre",
   if (styleSheet != ""):
     print " class=\"PRE" + str(lineLevel) + "\"",
@@ -329,6 +336,8 @@ def handleTableRow(linein,lineLevel):
 
 def handleTable(linein,lineLevel):
   global inBodyText
+  if (inBodyText == 1): print "</p>"
+  if (inBodyText == 2): print "</pre>"
   if (inBodyText != 3): 
 	  print "<table class=\"TAB" + str(lineLevel) + "\">"
 	  inBodyText = 3
@@ -459,19 +468,19 @@ def processLine(linein):
       if (slides == 0):
           if (lineLevel == find(linein," ") +1 ) or \
 	  (lineLevel == find(linein,":") +1 ): 
-		  if (inBodyText == 0): handleBodyText(linein,lineLevel)
+		  if (inBodyText != 1): handleBodyText(linein,lineLevel)
 		  elif (colonStrip(rstrip(lstrip(linein))) == ""):
 			  print "</p>"
 			  handleBodyText(linein,lineLevel)
             	  else: print colonStrip(rstrip(lstrip(linein))),
           elif (lineLevel == find(linein,";") +1 ): 
-		  if (inBodyText == 0): handlePreformattedText(linein,lineLevel)
+		  if (inBodyText != 2): handlePreformattedText(linein,lineLevel)
 		  elif (semicolonStrip(rstrip(lstrip(linein))) == ""):
 			  print "</pre>"
 			  handlePreformattedText(linein,lineLevel)
             	  else: print semicolonStrip(rstrip(lstrip(linein))),
           elif (lineLevel == find(linein,"|") +1 ): 
-		  if (inBodyText == 0): handleTable(linein,lineLevel)
+		  if (inBodyText != 3): handleTable(linein,lineLevel)
 		  elif (pipeStrip(rstrip(lstrip(linein))) == ""):
 			  print "</table>"
 			  handleTtable(linein,lineLevel)
@@ -564,8 +573,8 @@ def printHeader(linein):
   global styleSheet, inlineStyle
   print "<!DOCTYPE HTML PUBLIC \"-//W3C//DTD HTML 4.01//EN\" \"http://www.w3.org/TR/html4/strict.dtd\">"
   print "<html><head><title>" + linein + "</title>"
-  print"<!--  $Revision: 1.35 $ -->"
-  print"<!--  $Date: 2005/01/25 00:38:43 $ -->"
+  print"<!--  $Revision: 1.36 $ -->"
+  print"<!--  $Date: 2005/02/09 16:15:00 $ -->"
   print"<!--  $Author: noel $ -->"
   file = open(styleSheet,"r")
   if (styleSheet != "" and inlineStyle == 0):
@@ -579,6 +588,8 @@ def printHeader(linein):
     file.close()
     print "</style></head>"
   print "<body>"
+
+def printFirstLine(linein):
   print "<div class=\"DocTitle\">"
   print "<h1>" + rstrip(lstrip(linein)) +"</h1>"
   print "</div>"
@@ -597,13 +608,18 @@ def printFooter():
   print "</body></html>"
 
 def main():
+  global showTitle
   getArgs()
   flatouline = []
   file = open(inputfile,"r")
   if (slides == 0):
     firstLine = beautifyLine(lstrip(rstrip(file.readline())))
     printHeader(firstLine)
-    linein = beautifyLine(lstrip(rstrip(file.readline())))
+    if (showTitle == 1):
+      printFirstLine(firstLine)
+      linein = beautifyLine(lstrip(rstrip(file.readline())))
+    else:
+      linein = firstLine
     while linein != "":
       processLine(linein)
       linein = file.readline()
