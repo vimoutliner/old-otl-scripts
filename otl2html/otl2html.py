@@ -5,10 +5,10 @@
 # Copyright 2001 Cowboyz.com, Inc. All rights reserved
 #
 # ALPHA VERSION!!!
-# $Revsion:$
-# $Date: 2001/07/31 18:54:16 $
+# $Revision:$
+# $Date: 2001/08/01 20:21:18 $
 # $Author: noel $
-# $Source: /home/noel/apps/NoelOTL/RCS/otl2html.py,v $
+# $Source: /home/noel/active/projects/NoelOTL/RCS/otl2html.py,v $
 # $Locker: noel $
 
 ###########################################################################
@@ -138,7 +138,7 @@ def processLine(linein):
 def printHeader(linein):
   print "<HTML><TITLE>" + linein + "</title>"
   print"<!--  $Revsion:$ -->"
-  print"<!--  $Date: 2001/07/31 18:54:16 $ -->"
+  print"<!--  $Date: 2001/08/01 20:21:18 $ -->"
   print"<!--  $Author: noel $ -->"
 
 def printStyle(linein):
