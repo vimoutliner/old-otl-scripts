@@ -5,8 +5,8 @@
 # Copyright 2001 Cowboyz.com, Inc. All rights reserved
 #
 # ALPHA VERSION!!!
-# $Revision: 1.9 $
-# $Date: 2001/10/22 21:07:30 $
+# $Revision: 1.10 $
+# $Date: 2002/01/08 16:19:51 $
 # $Author: noel $
 # $Source: /home/noel/active/projects/NoelOTL/RCS/otl2html.py,v $
 # $Locker: noel $
@@ -37,6 +37,7 @@ from time import *
 formatMode = "simple"
 level = 0
 slides = 0
+hideComments = 0
 inputFile = ""
 outline = []
 flatoutline = []
@@ -62,6 +63,9 @@ def showUsage():
    print "           roman - uses HTML tags <OL> and <LI> for I.I.I"
    print "           alpha - uses HTML tags <OL> and <LI> for A.A.A"
    print "    -s     Slide show output for use with HtmlSlides"
+   print "    -c     Hide comments (line with [ as the first"
+   print "           non-whitespace character. Ending with ] is"
+   print "           optional."
    print "    -v     Print version (RCS) information"
    print "output is on STDOUT"
    print
@@ -74,8 +78,8 @@ def showUsage():
 def showVersion():
    print
    print "RCS"
-   print " $Revision: 1.9 $"
-   print " $Date: 2001/10/22 21:07:30 $"
+   print " $Revision: 1.10 $"
+   print " $Date: 2002/01/08 16:19:51 $"
    print " $Author: noel $"
    print " $Source: /home/noel/active/projects/NoelOTL/RCS/otl2html.py,v $"
    print
@@ -86,7 +90,7 @@ def showVersion():
 # output: possible console output for help, switch variables may be set
 
 def getArgs():
-  global inputfile, debug, formatMode, slides
+  global inputfile, debug, formatMode, slides, hideComments
   if (len(sys.argv) == 1): 
     showUsage()
     sys.exit()()
@@ -99,6 +103,8 @@ def getArgs():
 	  sys.exit()				# exit
         elif (sys.argv[i] == "-s"):		# test for the slides flag
 	  slides = 1				# set the slides flag
+        elif (sys.argv[i] == "-c"):		# test for the comments flag
+	  hideComments = 1			# set the comments flag
         elif (sys.argv[i] == "-t"):		# test for the type flag
 	  formatMode = sys.argv[i+1]		# get the type
 	  i = i + 1				# increment the pointer
@@ -149,52 +155,53 @@ def getLineTextLevel(linein):
 # output: through standard out
 
 def processLine(linein):
-  global level, formatMode, slides
+  global level, formatMode, slides, hideComments
   lineLevel = getLineLevel(linein)
-  if (formatMode == "simple"):
-    print "<H" + str(lineLevel) + ">" + lstrip(linein) + "</H" + str(lineLevel) + ">"
-  else:
-    if (lineLevel > level):
-      while (lineLevel > level):
-	if (formatMode == "bullets"):
-	  print "<UL>"
-	elif (formatMode == "roman"):
-	  print "<OL type=\"I\">"
-	elif (formatMode == "numeric"):
-	  print "<OL type=\"1\">"
-	elif (formatMode == "alpha"):
-	  print "<OL type=\"A\">"
-	else:
-	  sys.exit("Error! Unknown formatMode type")
-	level = level + 1
-    elif (lineLevel < level):
-      while (lineLevel < level):
-	if (formatMode == "bullets"):
-	  print "</UL>"
-	else:
-	  print "</OL>"
-	level = level - 1
+  if ((hideComments == 0) or (lineLevel != (find(linein,"[")+1))):
+    if (formatMode == "simple"):
+      print "<H" + str(lineLevel) + ">" + lstrip(linein) + "</H" + str(lineLevel) + ">"
     else:
-      print
-    if (lstrip(rstrip(linein)) == "----------------------------------------"):
-      print "<br><br><hr><br>"
-    else:
-      if (slides == 0):
-        if (lineLevel == find(linein," ") +1 ):
-	  print "<p>" + lstrip(linein)
-	else:
-          print "<LI>" + lstrip(linein)
+      if (lineLevel > level):
+       while (lineLevel > level):
+    	if (formatMode == "bullets"):
+    	  print "<UL>"
+    	elif (formatMode == "roman"):
+    	  print "<OL type=\"I\">"
+    	elif (formatMode == "numeric"):
+    	  print "<OL type=\"1\">"
+    	elif (formatMode == "alpha"):
+    	  print "<OL type=\"A\">"
+    	else:
+    	  sys.exit("Error! Unknown formatMode type")
+    	level = level + 1
+      elif (lineLevel < level):
+       while (lineLevel < level):
+  	if (formatMode == "bullets"):
+  	  print "</UL>"
+  	else:
+  	  print "</OL>"
+  	level = level - 1
       else:
-        if (lineLevel == 1):
-          if (linein[0] == " "):
-            print "<p>" + lstrip(linein)
-          else:
-            print "<address>" + lstrip(linein) + "</address>\n"
-        else:
-          if (lineLevel == find(linein," ") +1):
-            print "<p>" + lstrip(linein)
-          else:
+        print
+      if (lstrip(rstrip(linein)) == "----------------------------------------"):
+        print "<br><br><hr><br>"
+      else:
+        if (slides == 0):
+          if (lineLevel == find(linein," ") +1 ):
+  	    print "<p>" + lstrip(linein)
+  	  else:
             print "<LI>" + lstrip(linein)
+        else:
+          if (lineLevel == 1):
+            if (linein[0] == " "):
+              print "<p>" + lstrip(linein)
+            else:
+              print "<address>" + lstrip(linein) + "</address>\n"
+          else:
+            if (lineLevel == find(linein," ") +1):
+              print "<p>" + lstrip(linein)
+            else:
+              print "<LI>" + lstrip(linein)
       
 # flatten
 # Flatten a subsection of an outline.  The index passed is the outline section
@@ -235,7 +242,7 @@ def flatten(idx):
 def printHeader(linein):
   print "<HTML><TITLE>" + linein + "</TITLE>"
   print"<!--  $Revsion:$ -->"
-  print"<!--  $Date: 2001/10/22 21:07:30 $ -->"
+  print"<!--  $Date: 2002/01/08 16:19:51 $ -->"
   print"<!--  $Author: noel $ -->"
 
 def printStyle(linein):
@@ -246,10 +253,12 @@ def printStyle(linein):
   print "<DIV NAME=\"Main\">"
 
 def printFooter():
+  global slides
   print "</DIV>"
-  print "<br><br><br><font size=1>Copyright (C) 2002 Cowboyz.com, Inc. "
-  print "All Rights Reserved</font><br>"
-  print inputfile + "&nbsp&nbsp " + strftime("%Y/%m/%d %H:%M",localtime(time()))
+  if (slides == 0):
+	  print "<br><br><br><font size=1>Copyright (C) 2002 Cowboyz.com, Inc. "
+	  print "All Rights Reserved</font><br>"
+	  print inputfile + "&nbsp&nbsp " + strftime("%Y/%m/%d %H:%M",localtime(time()))
   print "</BODY></HTML>"
 
 def main():
