@@ -5,8 +5,8 @@
 # Copyright 2001 Noel Henson All rights reserved
 #
 # ALPHA VERSION!!!
-# $Revision: 1.38 $
-# $Date: 2005/02/23 14:03:54 $
+# $Revision: 1.39 $
+# $Date: 2005/02/23 14:09:40 $
 # $Author: noel $
 # $Source: /home/noel/active/NoelOTL/RCS/otl2html.py,v $
 # $Locker: noel $
@@ -148,8 +148,8 @@ def showSyntax():
 def showVersion():
    print
    print "RCS"
-   print " $Revision: 1.38 $"
-   print " $Date: 2005/02/23 14:03:54 $"
+   print " $Revision: 1.39 $"
+   print " $Date: 2005/02/23 14:09:40 $"
    print " $Author: noel $"
    print
 
@@ -632,10 +632,10 @@ def flatten(idx):
 
 def printHeader(linein):
   global styleSheet, inlineStyle
-  print "<!DOCTYPE HTML PUBLIC \"-//W3C//DTD HTML 4.01//EN\" \"http://www.w3.org/TR/html4/strict.dtd\">"
+  print "<!DOCTYPE HTML PUBLIC \"-//W3C//DTD HTML 4.01 Transitional//EN\" \"http://www.w3.org/TR/html4/strict.dtd\">"
   print "<html><head><title>" + linein + "</title>"
-  print"<!--  $Revision: 1.38 $ -->"
-  print"<!--  $Date: 2005/02/23 14:03:54 $ -->"
+  print"<!--  $Revision: 1.39 $ -->"
+  print"<!--  $Date: 2005/02/23 14:09:40 $ -->"
   print"<!--  $Author: noel $ -->"
   file = open(styleSheet,"r")
   if (styleSheet != "" and inlineStyle == 0):
