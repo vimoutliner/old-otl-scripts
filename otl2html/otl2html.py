@@ -5,11 +5,11 @@
 # Copyright 2001 Noel Henson All rights reserved
 #
 # ALPHA VERSION!!!
-# $Revision: 1.30 $
-# $Date: 2004/12/02 01:02:48 $
+# $Revision: 1.33 $
+# $Date: 2004/12/12 15:04:07 $
 # $Author: noel $
 # $Source: /home/noel/active/NoelOTL/RCS/otl2html.py,v $
-# $Locker: noel $
+# $Locker:  $
 
 ###########################################################################
 # Basic function
@@ -41,6 +41,7 @@ formatMode = "simple"
 copyright = ""
 level = 0
 div = 0
+silentdiv = 0
 slides = 0
 hideComments = 0
 inputFile = ""
@@ -87,8 +88,8 @@ def showUsage():
 def showVersion():
    print
    print "RCS"
-   print " $Revision: 1.30 $"
-   print " $Date: 2004/12/02 01:02:48 $"
+   print " $Revision: 1.33 $"
+   print " $Date: 2004/12/12 15:04:07 $"
    print " $Author: noel $"
    print " $Source: /home/noel/active/NoelOTL/RCS/otl2html.py,v $"
    print
@@ -286,7 +287,7 @@ def getColumnAlignment(coldata):
 def handleTableColumns(linein,lineLevel):
   out = ""
   coldata = lstrip(rstrip(linein))
-  coldata = split(coldata,"|")
+  coldata = coldata.split("|")
   for i in range(1,len(coldata)-1):
 		out += getColumnAlignment(coldata[i])
 		out += lstrip(rstrip(coldata[i]))+'</td>'
@@ -300,7 +301,7 @@ def handleTableColumns(linein,lineLevel):
 def handleTableHeaders(linein,lineLevel):
   out = ""
   coldata = lstrip(rstrip(linein))
-  coldata = split(coldata,"|")
+  coldata = coldata.split("|")
   for i in range(2,len(coldata)-1):
 		out += getColumnAlignment(coldata[i])
 		out += lstrip(rstrip(coldata[i]))+'</td>'
@@ -339,10 +340,10 @@ def handleTable(linein,lineLevel):
 # output: modified line
 
 def linkOrImage(line):
-  line = sub('\[(\S+?)\]','<img src="\\1">',line)
+  line = sub('\[(\S+?)\]','<img src="\\1" alt="\\1">',line)
   line = sub('\[(\S+)\s(.*?)\]','<a href="\\1">\\2</a>',line)
-  line = replace(line,'<img src="X">','[X]')
-  line = replace(line,'<img src="_">','[_]')
+  line = replace(line,'<img src="X" alt="X">','[X]')
+  line = replace(line,'<img src="_" alt="_">','[_]')
   return line
 
 # divName
@@ -350,7 +351,11 @@ def linkOrImage(line):
 # input: line
 # output: division name
 def divName(line):
+	global silentdiv
 	line = lstrip(rstrip(line))
+	if (line[0] == '_'):
+		silentdiv = 1
+		line = line[1:]
 	line = replace(line, ' ', '_')
 	return'<div class="' + line + '">'
 
@@ -393,6 +398,7 @@ def closeLevels():
 
     level = level - 1
 
+
 # processLine
 # process a single line
 # input: linein - a single line that may or may not have tabs at the beginning
@@ -402,7 +408,7 @@ def closeLevels():
 # output: through standard out
 
 def processLine(linein):
-  global level, formatMode, slides, hideComments, inBodyText, styleSheet, inlineStyle, div
+  global level, formatMode, slides, hideComments, inBodyText, styleSheet, inlineStyle, div, silentdiv
   if (lstrip(linein) == ""): return
   linein = beautifyLine(linein)
   lineLevel = getLineLevel(linein)
@@ -420,8 +426,7 @@ def processLine(linein):
           elif (inBodyText == 3):
   	    print"</table>"
   	    inBodyText = 0
-	  if (div == 1 and lineLevel == 1): print divName(linein)
-    	  print "<ol>"
+          if not (div == 1 and lineLevel == 1): print "<ol>"
     	else:
     	  sys.exit("Error! Unknown formatMode type")
     	level = level + 1
@@ -439,9 +444,15 @@ def processLine(linein):
 	  inBodyText = 0
   	print "</ol>"
   	level = level - 1
-	if (div == 1 and level == 1): print'</div>'
+	if (div == 1 and level == 1): 
+		if (silentdiv == 0): print'</ol>'
+		else: slientdiv = 0
+		print'</div>'
 
       else: print # same depth
+      if (div == 1 and lineLevel == 1): 
+	  print divName(linein)
+	  if (silentdiv == 0): print "<ol>"
 
       if (slides == 0):
           if (lineLevel == find(linein," ") +1 ) or \
@@ -473,17 +484,19 @@ def processLine(linein):
             elif (inBodyText == 3):
 	    	    print"</table>"
 		    inBodyText = 0
-            print "<li",
-	    if (styleSheet != ""):
-	      if (lineLevel == find(linein,"- ") +1 ): 
-                print " class=\"LB" + str(lineLevel) + "\"",
-                print ">" + lstrip(rstrip(dashStrip(lstrip(linein)))),
-	      elif (lineLevel == find(linein,"+ ") +1 ): 
-                print " class=\"LN" + str(lineLevel) + "\"",
-                print ">" + lstrip(rstrip(plusStrip(lstrip(linein)))),
-	      else:
-                print " class=\"L" + str(lineLevel) + "\"",
-                print ">" + rstrip(lstrip(linein)),
+	    if (silentdiv == 0):
+		    print "<li",
+		    if (styleSheet != ""):
+		      if (lineLevel == find(linein,"- ") +1 ): 
+			print " class=\"LB" + str(lineLevel) + "\"",
+			print ">" + lstrip(rstrip(dashStrip(lstrip(linein)))),
+		      elif (lineLevel == find(linein,"+ ") +1 ): 
+			print " class=\"LN" + str(lineLevel) + "\"",
+			print ">" + lstrip(rstrip(plusStrip(lstrip(linein)))),
+		      else:
+			print " class=\"L" + str(lineLevel) + "\"",
+			print ">" + rstrip(lstrip(linein)),
+	    else: silentdiv = 0
       else:
           if (lineLevel == 1):
             if (linein[0] == " "):
@@ -549,8 +562,8 @@ def printHeader(linein):
   global styleSheet, inlineStyle
   print "<!DOCTYPE HTML PUBLIC \"-//W3C//DTD HTML 4.01//EN\" \"http://www.w3.org/TR/html4/strict.dtd\">"
   print "<html><head><title>" + linein + "</title>"
-  print"<!--  $Revision: 1.30 $ -->"
-  print"<!--  $Date: 2004/12/02 01:02:48 $ -->"
+  print"<!--  $Revision: 1.33 $ -->"
+  print"<!--  $Date: 2004/12/12 15:04:07 $ -->"
   print"<!--  $Author: noel $ -->"
   file = open(styleSheet,"r")
   if (styleSheet != "" and inlineStyle == 0):
