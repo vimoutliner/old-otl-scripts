@@ -5,8 +5,8 @@
 # Copyright 2001 Noel Henson All rights reserved
 #
 # ALPHA VERSION!!!
-# $Revision: 1.20 $
-# $Date: 2004/05/19 16:34:08 $
+# $Revision: 1.21 $
+# $Date: 2004/11/18 22:57:50 $
 # $Author: noel $
 # $Source: /home/noel/active/NoelOTL/RCS/otl2html.py,v $
 # $Locker: noel $
@@ -92,8 +92,8 @@ def showUsage():
 def showVersion():
    print
    print "RCS"
-   print " $Revision: 1.20 $"
-   print " $Date: 2004/05/19 16:34:08 $"
+   print " $Revision: 1.21 $"
+   print " $Date: 2004/11/18 22:57:50 $"
    print " $Author: noel $"
    print " $Source: /home/noel/active/NoelOTL/RCS/otl2html.py,v $"
    print
@@ -335,7 +335,7 @@ def processLine(linein):
 		    inBodyText = 0
             print "<li",
 	    if (styleSheet != ""):
-	      if (lineLevel == find(linein,"-") +1 ): 
+	      if (lineLevel == find(linein,"- ") +1 ): 
                 print " class=\"LB" + str(lineLevel) + "\"",
                 print ">" + lstrip(rstrip(dashStrip(lstrip(linein)))),
 	      else:
@@ -406,8 +406,8 @@ def printHeader(linein):
   global styleSheet, inlineStyle
   print "<!DOCTYPE HTML PUBLIC \"-//W3C//DTD HTML 4.01//EN\" \"http://www.w3.org/TR/html4/strict.dtd\">"
   print "<html><head><title>" + linein + "</title>"
-  print"<!--  $Revision: 1.20 $ -->"
-  print"<!--  $Date: 2004/05/19 16:34:08 $ -->"
+  print"<!--  $Revision: 1.21 $ -->"
+  print"<!--  $Date: 2004/11/18 22:57:50 $ -->"
   print"<!--  $Author: noel $ -->"
   file = open(styleSheet,"r")
   if (styleSheet != "" and inlineStyle == 0):
