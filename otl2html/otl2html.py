@@ -5,8 +5,8 @@
 # Copyright 2001 Noel Henson All rights reserved
 #
 # ALPHA VERSION!!!
-# $Revision: 1.18 $
-# $Date: 2003/11/27 16:06:21 $
+# $Revision: 1.19 $
+# $Date: 2004/04/20 16:42:43 $
 # $Author: noel $
 # $Source: /home/noel/active/NoelOTL/RCS/otl2html.py,v $
 # $Locker: noel $
@@ -44,7 +44,7 @@ hideComments = 0
 inputFile = ""
 outline = []
 flatoutline = []
-inBodyText = 0
+inBodyText = 0		# 0: no, 1: text, 2: preformatted text, 3: table
 styleSheet = ""
 inlineStyle = 0
 
@@ -92,8 +92,8 @@ def showUsage():
 def showVersion():
    print
    print "RCS"
-   print " $Revision: 1.18 $"
-   print " $Date: 2003/11/27 16:06:21 $"
+   print " $Revision: 1.19 $"
+   print " $Date: 2004/04/20 16:42:43 $"
    print " $Author: noel $"
    print " $Source: /home/noel/active/NoelOTL/RCS/otl2html.py,v $"
    print
@@ -181,6 +181,15 @@ def colonStrip(line):
 	if (line[0] == ":"): return lstrip(line[1:])
         else: return line
 
+# semicolonStrip(line)
+# stip a leading ';', if it exists
+# input: line
+# output: returns a string with a stipped ':'
+
+def semicolonStrip(line):
+	if (line[0] == ";"): return line[1:]
+        else: return line
+
 # handleBodyText
 # print body text lines with a class indicating level, if style sheets
 # are being used. otherwise print just <p>
@@ -194,6 +203,20 @@ def handleBodyText(linein,lineLevel):
     print " class=\"P" + str(lineLevel) + "\"",
     inBodyText = 1
   print ">" + colonStrip(rstrip(lstrip(linein))),
+
+# handlePreformattedText
+# print preformatted text lines with a class indicating level, if style sheets
+# are being used. otherwise print just <pre>
+# input: linein - a single line that may or may not have tabs at the beginning
+# output: through standard out
+
+def handlePreformattedText(linein,lineLevel):
+  global inBodyText
+  print "<pre",
+  if (styleSheet != ""):
+    print " class=\"PRE" + str(lineLevel) + "\"",
+    inBodyText = 2
+  print ">" + semicolonStrip(rstrip(lstrip(linein))),
 
 # closeLevels
 # generate the number of </ul> or </ol> tags necessary to proplerly finish
@@ -213,7 +236,6 @@ def closeLevels():
 
     level = level - 1
 
-
 # processLine
 # process a single line
 # input: linein - a single line that may or may not have tabs at the beginning
@@ -230,7 +252,7 @@ def processLine(linein):
     if (formatMode == "simple"):
       print "<h" + str(lineLevel) + ">" + lstrip(linein) + "</h" + str(lineLevel) + ">"
     else:
-      if (lineLevel > level):
+      if (lineLevel > level): # increasing depth
        while (lineLevel > level):
     	if (formatMode == "bullets"):
           if (inBodyText == 1):
@@ -260,7 +282,7 @@ def processLine(linein):
     	else:
     	  sys.exit("Error! Unknown formatMode type")
     	level = level + 1
-      elif (lineLevel < level):
+      elif (lineLevel < level): # decreasing depth
        while (lineLevel < level):
   	if (formatMode == "bullets"):
           if (inBodyText == 1):
@@ -270,6 +292,9 @@ def processLine(linein):
   	else:
           if (inBodyText == 1):
 	    print"</p>"
+	    inBodyText = 0
+          elif (inBodyText == 2):
+	    print"</pre>"
 	    inBodyText = 0
   	  print "</ol>"
   	level = level - 1
@@ -286,9 +311,18 @@ def processLine(linein):
 			  print "</p>"
 			  handleBodyText(linein,lineLevel)
             	  else: print colonStrip(rstrip(lstrip(linein))),
+          elif (lineLevel == find(linein,";") +1 ): 
+		  if (inBodyText == 0): handlePreformattedText(linein,lineLevel)
+		  elif (semicolonStrip(rstrip(lstrip(linein))) == ""):
+			  print "</pre>"
+			  handlePreformattedText(linein,lineLevel)
+            	  else: print semicolonStrip(rstrip(lstrip(linein))),
   	  else:
             if (inBodyText == 1):
 	    	    print"</p>"
+		    inBodyText = 0
+            elif (inBodyText == 2):
+	    	    print"</pre>"
 		    inBodyText = 0
             print "<li",
 	    if (styleSheet != ""):
@@ -359,8 +393,8 @@ def printHeader(linein):
   global styleSheet, inlineStyle
   print "<!DOCTYPE HTML PUBLIC \"-//W3C//DTD HTML 4.01//EN\" \"http://www.w3.org/TR/html4/strict.dtd\">"
   print "<html><head><title>" + linein + "</title>"
-  print"<!--  $Revision: 1.18 $ -->"
-  print"<!--  $Date: 2003/11/27 16:06:21 $ -->"
+  print"<!--  $Revision: 1.19 $ -->"
+  print"<!--  $Date: 2004/04/20 16:42:43 $ -->"
   print"<!--  $Author: noel $ -->"
   file = open(styleSheet,"r")
   if (styleSheet != "" and inlineStyle == 0):
