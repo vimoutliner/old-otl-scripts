@@ -5,8 +5,8 @@
 # Copyright 2001 Noel Henson All rights reserved
 #
 # ALPHA VERSION!!!
-# $Revision: 1.28 $
-# $Date: 2004/11/28 13:53:36 $
+# $Revision: 1.29 $
+# $Date: 2004/11/28 17:31:34 $
 # $Author: noel $
 # $Source: /home/noel/active/NoelOTL/RCS/otl2html.py,v $
 # $Locker: noel $
@@ -40,6 +40,7 @@ from time import *
 formatMode = "simple"
 copyright = ""
 level = 0
+div = 0
 slides = 0
 hideComments = 0
 inputFile = ""
@@ -63,6 +64,8 @@ def showUsage():
    print "otl2html.py [options] inputfile > outputfile"
    print "Options"
    print "    -p              Presentation: slide show output for use with HtmlSlides."
+   print "    -D              First-level is divisions (<div> </div>) for making"
+   print "                    pretty web pages."
    print "    -s sheet        Use the specified style sheet with a link. Not compatible"
    print "                    with -t."
    print "    -S sheet        Include the specified style sheet in-line the output. For"
@@ -84,8 +87,8 @@ def showUsage():
 def showVersion():
    print
    print "RCS"
-   print " $Revision: 1.28 $"
-   print " $Date: 2004/11/28 13:53:36 $"
+   print " $Revision: 1.29 $"
+   print " $Date: 2004/11/28 17:31:34 $"
    print " $Author: noel $"
    print " $Source: /home/noel/active/NoelOTL/RCS/otl2html.py,v $"
    print
@@ -96,7 +99,7 @@ def showVersion():
 # output: possible console output for help, switch variables may be set
 
 def getArgs():
-  global inputfile, debug, formatMode, slides, hideComments, copyright, styleSheet, inlineStyle
+  global inputfile, debug, formatMode, slides, hideComments, copyright, styleSheet, inlineStyle, div
   if (len(sys.argv) == 1): 
     showUsage()
     sys.exit()()
@@ -109,6 +112,8 @@ def getArgs():
 	  sys.exit()				# exit
         elif (sys.argv[i] == "-p"):		# test for the slides flag
 	  slides = 1				# set the slides flag
+        elif (sys.argv[i] == "-D"):		# test for the divisions flag
+	  div = 1				# set the divisions flag
         elif (sys.argv[i] == "-c"):		# test for the comments flag
 	  hideComments = 1			# set the comments flag
         elif (sys.argv[i] == "-C"):		# test for the copyright flag
@@ -340,6 +345,15 @@ def linkOrImage(line):
   line = replace(line,'<img src="_">','[_]')
   return line
 
+# divName
+# create a name for a division
+# input: line
+# output: division name
+def divName(line):
+	line = lstrip(rstrip(line))
+	line = replace(line, ' ', '_')
+	return'<div class="' + line + '">'
+
 def beautifyLine(line):
   if (lstrip(rstrip(line)) == "----------------------------------------"):
         return "<br><hr><br>"
@@ -388,11 +402,12 @@ def closeLevels():
 # output: through standard out
 
 def processLine(linein):
-  global level, formatMode, slides, hideComments, inBodyText, styleSheet, inlineStyle
+  global level, formatMode, slides, hideComments, inBodyText, styleSheet, inlineStyle, div
   if (lstrip(linein) == ""): return
   linein = beautifyLine(linein)
   lineLevel = getLineLevel(linein)
   if ((hideComments == 0) or (lineLevel != (find(linein,"[")+1))):
+
       if (lineLevel > level): # increasing depth
        while (lineLevel > level):
     	if (formatMode == "indent"):
@@ -403,6 +418,7 @@ def processLine(linein):
     	else:
     	  sys.exit("Error! Unknown formatMode type")
     	level = level + 1
+
       elif (lineLevel < level): # decreasing depth
        while (lineLevel < level):
         if (inBodyText == 1):
@@ -416,7 +432,10 @@ def processLine(linein):
 	  inBodyText = 0
   	print "</ol>"
   	level = level - 1
-      else: print
+	if (div == 1 and level == 1): print'</div>'
+
+      else: print # same depth
+
       if (slides == 0):
           if (lineLevel == find(linein," ") +1 ) or \
 	  (lineLevel == find(linein,":") +1 ): 
@@ -447,6 +466,7 @@ def processLine(linein):
             elif (inBodyText == 3):
 	    	    print"</table>"
 		    inBodyText = 0
+	    if (div == 1 and lineLevel == 1): print divName(linein)
             print "<li",
 	    if (styleSheet != ""):
 	      if (lineLevel == find(linein,"- ") +1 ): 
@@ -523,8 +543,8 @@ def printHeader(linein):
   global styleSheet, inlineStyle
   print "<!DOCTYPE HTML PUBLIC \"-//W3C//DTD HTML 4.01//EN\" \"http://www.w3.org/TR/html4/strict.dtd\">"
   print "<html><head><title>" + linein + "</title>"
-  print"<!--  $Revision: 1.28 $ -->"
-  print"<!--  $Date: 2004/11/28 13:53:36 $ -->"
+  print"<!--  $Revision: 1.29 $ -->"
+  print"<!--  $Date: 2004/11/28 17:31:34 $ -->"
   print"<!--  $Author: noel $ -->"
   file = open(styleSheet,"r")
   if (styleSheet != "" and inlineStyle == 0):
@@ -538,16 +558,16 @@ def printHeader(linein):
     file.close()
     print "</style></head>"
   print "<body>"
-  print "<div title=\"DocTitle\">"
+  print "<div class=\"DocTitle\">"
   print "<h1>" + rstrip(lstrip(linein)) +"</h1>"
   print "</div>"
-  print "<div TITLE=\"Main\">"
+  print "<div class=\"MainPage\">"
 
 def printFooter():
-  global slides
+  global slides, div
   print "</div>"
-  if (slides == 0):
-          print "<div title=\"Footer\">"
+  if (slides == 0 and div == 0):
+          print "<div class=\"Footer\">"
 	  print "<hr>"
 	  print copyright
 	  print "<br>"
