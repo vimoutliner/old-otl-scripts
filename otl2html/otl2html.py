@@ -5,8 +5,8 @@
 # Copyright 2001 Noel Henson All rights reserved
 #
 # ALPHA VERSION!!!
-# $Revision: 1.29 $
-# $Date: 2004/11/28 17:31:34 $
+# $Revision: 1.30 $
+# $Date: 2004/12/02 01:02:48 $
 # $Author: noel $
 # $Source: /home/noel/active/NoelOTL/RCS/otl2html.py,v $
 # $Locker: noel $
@@ -87,8 +87,8 @@ def showUsage():
 def showVersion():
    print
    print "RCS"
-   print " $Revision: 1.29 $"
-   print " $Date: 2004/11/28 17:31:34 $"
+   print " $Revision: 1.30 $"
+   print " $Date: 2004/12/02 01:02:48 $"
    print " $Author: noel $"
    print " $Source: /home/noel/active/NoelOTL/RCS/otl2html.py,v $"
    print
@@ -339,7 +339,7 @@ def handleTable(linein,lineLevel):
 # output: modified line
 
 def linkOrImage(line):
-  line = sub('\[(\S+?)\]','<img src="\\1">',line)
+  line = sub('\[(\S+?)\]','<img src="\\1" alt="\\1">',line)
   line = sub('\[(\S+)\s(.*?)\]','<a href="\\1">\\2</a>',line)
   line = replace(line,'<img src="X">','[X]')
   line = replace(line,'<img src="_">','[_]')
@@ -393,6 +393,7 @@ def closeLevels():
 
     level = level - 1
 
+
 # processLine
 # process a single line
 # input: linein - a single line that may or may not have tabs at the beginning
@@ -414,7 +415,13 @@ def processLine(linein):
           if (inBodyText == 1):
 	    print"</p>"
 	    inBodyText = 0
-    	  print "<ol>"
+          elif (inBodyText == 2):
+  	    print"</pre>"
+  	    inBodyText = 0
+          elif (inBodyText == 3):
+  	    print"</table>"
+  	    inBodyText = 0
+          if not (div == 1 and lineLevel == 1): print "<ol>"
     	else:
     	  sys.exit("Error! Unknown formatMode type")
     	level = level + 1
@@ -432,9 +439,12 @@ def processLine(linein):
 	  inBodyText = 0
   	print "</ol>"
   	level = level - 1
-	if (div == 1 and level == 1): print'</div>'
+	if (div == 1 and level == 1): print'</ol></div>'
 
       else: print # same depth
+      if (div == 1 and lineLevel == 1): 
+	  print divName(linein)
+	  print "<ol>"
 
       if (slides == 0):
           if (lineLevel == find(linein," ") +1 ) or \
@@ -466,7 +476,6 @@ def processLine(linein):
             elif (inBodyText == 3):
 	    	    print"</table>"
 		    inBodyText = 0
-	    if (div == 1 and lineLevel == 1): print divName(linein)
             print "<li",
 	    if (styleSheet != ""):
 	      if (lineLevel == find(linein,"- ") +1 ): 
@@ -543,8 +552,8 @@ def printHeader(linein):
   global styleSheet, inlineStyle
   print "<!DOCTYPE HTML PUBLIC \"-//W3C//DTD HTML 4.01//EN\" \"http://www.w3.org/TR/html4/strict.dtd\">"
   print "<html><head><title>" + linein + "</title>"
-  print"<!--  $Revision: 1.29 $ -->"
-  print"<!--  $Date: 2004/11/28 17:31:34 $ -->"
+  print"<!--  $Revision: 1.30 $ -->"
+  print"<!--  $Date: 2004/12/02 01:02:48 $ -->"
   print"<!--  $Author: noel $ -->"
   file = open(styleSheet,"r")
   if (styleSheet != "" and inlineStyle == 0):
