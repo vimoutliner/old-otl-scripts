@@ -1,14 +1,34 @@
 #!/usr/bin/python
 # otl2ooimpress.py
-# Convert a Vim Outliner text file to an Open Office Impress file
+# needs otl2ooimpress.sh to work in an automated way
+#############################################################################
 #
-# Copyright 2003 Noel Henson All rights reserved
+#  Tool for Vim Outliner files to Open Office Impress files.
+#  Copyright (C) 2003 by Noel Henson, all rights reserved.
 #
+#       This tool is free software; you can redistribute it and/or
+#       modify it under the terms of the GNU Library General Public
+#       License as published by the Free Software Foundation; either
+#       version 2 of the License, or (at your option) any later version.
+#
+#       This library is distributed in the hope that it will be useful,
+#       but WITHOUT ANY WARRANTY; without even the implied warranty of
+#       MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the GNU
+#       Lesser General Public License for more details.
+#
+#       You should have received a copy of the GNU Library General Public
+#       License along with this library; if not, write to:
+#
+#       Free Software Foundation, Inc.
+#       59 Temple Place, Suite 330
+#       Boston, MA 02111-1307  USA
+#
+#############################################################################
 # ALPHA VERSION!!!
-# $Revision: 1.1 $
-# $Date: 2003/11/30 22:49:59 $
+# $Revision: 1.2 $
+# $Date: 2003/12/01 05:58:55 $
 # $Author: noel $
-# $Source: /home/noel/active/otl2ooimpress/RCS/otl2ooimpress.py,v $
+# $Source: /home/noel/apps/otl2ooimpress/RCS/otl2ooimpress.py,v $
 # $Locker: noel $
 
 ###########################################################################
@@ -65,10 +85,10 @@ def showUsage():
 def showVersion():
    print
    print "RCS"
-   print " $Revision: 1.1 $"
-   print " $Date: 2003/11/30 22:49:59 $"
+   print " $Revision: 1.2 $"
+   print " $Date: 2003/12/01 05:58:55 $"
    print " $Author: noel $"
-   print " $Source: /home/noel/active/otl2ooimpress/RCS/otl2ooimpress.py,v $"
+   print " $Source: /home/noel/apps/otl2ooimpress/RCS/otl2ooimpress.py,v $"
    print
 
 # getArgs
