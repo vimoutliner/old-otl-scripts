@@ -5,11 +5,11 @@
 # Copyright 2001 Cowboyz.com, Inc. All rights reserved
 #
 # ALPHA VERSION!!!
-# $Revision: 1.6 $
-# $Date: 2001/10/09 22:22:39 $
+# $Revision: 1.7 $
+# $Date: 2001/10/09 23:01:40 $
 # $Author: noel $
 # $Source: /home/noel/active/projects/NoelOTL/RCS/otl2html.py,v $
-# $Locker: noel $
+# $Locker:  $
 
 ###########################################################################
 # Basic function
@@ -19,7 +19,8 @@
 #	tabs is assumed to be part of the highest outline level.
 #
 #	10 outline levels are supported.  These loosely correspond to the
-#	HTML H1 through H9 tags.
+#	HTML H1 through H9 tags.  Alphabetic, numeric and bullet formats
+#	are also supported.
 #
 
 
@@ -37,6 +38,7 @@ level = 0
 slides = 0
 inputFile = ""
 outline = []
+flatoutline = []
 
 ###########################################################################
 # function definitions
@@ -139,8 +141,8 @@ def processLine(linein):
 	level = level - 1
     else:
       print "\n"
-    if (rstrip(linein) == "----------------------------------------"):
-      print "<br><hr><br>"
+    if (lstrip(rstrip(linein)) == "----------------------------------------"):
+      print "<br><br><hr><br>"
     else:
       if (slides == 0):
         print "<LI>" + lstrip(linein)
@@ -150,34 +152,81 @@ def processLine(linein):
         else:
           print "<LI>" + lstrip(linein)
       
+# flatten
+# Flatten a subsection of an outline.  The index passed is the outline section
+# title.  All sublevels that are only one level deeper are indcluded in the current
+# subsection.  Then there is a recursion for those items listed in the subsection.
+# Exits when the next line to be processed is of the same or lower outline level.
+#  (lower means shallower)
+# input: idx - the index into the outline.  The indexed line is the title.
+# output: adds reformatted lines to flatoutline[]
+
+def flatten(idx):
+  if (outline[idx] == ""):
+    return
+  if (len(outline) <= idx):
+    return
+  titleline = outline[idx]
+  titlelevel = getLineLevel(titleline)
+  if (getLineLevel(outline[idx+1]) > titlelevel):
+    flatoutline.append(lstrip(titleline))
+    exitflag = 0
+    while (exitflag == 0):
+      if (idx < len(outline)-1):
+        idx = idx + 1
+        currlevel = getLineLevel(outline[idx])
+        if (currlevel == titlelevel + 1):
+          flatoutline.append("\t" + lstrip(outline[idx]))
+        elif (currlevel <= titlelevel):
+          exitflag = 1
+      else:
+        exitflag = 1
+  return
+
+  
+  
+
 def printHeader(linein):
   print "<HTML><TITLE>" + linein + "</TITLE>"
   print"<!--  $Revsion:$ -->"
-  print"<!--  $Date: 2001/10/09 22:22:39 $ -->"
+  print"<!--  $Date: 2001/10/09 23:01:40 $ -->"
   print"<!--  $Author: noel $ -->"
 
 def printStyle(linein):
   print "<BODY>"
-  #print "<DIV NAME=\"DocTitle\" ALIGN=CENTER>"
   print "<DIV NAME=\"DocTitle\">"
   print "<H1>" + lstrip(linein) +"</H1>"
   print "</DIV>"
   print "<DIV NAME=\"Main\">"
-
 
 def printFooter():
   print "</DIV></BODY></HTML>"
 
 def main():
   getArgs()
+  flatouline = []
   file = open(inputfile,"r")
-  firstLine = lstrip(file.readline())
-  printHeader(firstLine)
-  printStyle(firstLine)
-  linein = lstrip(file.readline())
-  while linein != "":
-    processLine(linein)
-    linein = file.readline()
+  if (slides == 0):
+    firstLine = lstrip(file.readline())
+    printHeader(firstLine)
+    printStyle(firstLine)
+    linein = lstrip(file.readline())
+    while linein != "":
+      processLine(linein)
+      linein = file.readline()
+  else:
+    linein = lstrip(file.readline())
+    outline.append(linein)
+    while linein != "":
+      outline.append("\t" + linein)
+      linein = file.readline()
+    for i in range (0,len(outline)-1):
+      flatten(i)
+    printHeader(flatoutline[0])
+    printStyle(flatoutline[0])
+    for i in range (0,len(flatoutline)):
+      processLine(flatoutline[i])
+    
   printFooter()
   file.close()
 
