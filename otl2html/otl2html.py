@@ -5,8 +5,8 @@
 # Copyright 2001 Cowboyz.com, Inc. All rights reserved
 #
 # ALPHA VERSION!!!
-# $Revision: 1.8 $
-# $Date: 2001/10/10 20:12:52 $
+# $Revision: 1.9 $
+# $Date: 2001/10/22 21:07:30 $
 # $Author: noel $
 # $Source: /home/noel/active/projects/NoelOTL/RCS/otl2html.py,v $
 # $Locker: noel $
@@ -29,6 +29,7 @@
 
 import sys
 from string import *
+from time import *
 
 ###########################################################################
 # global variables
@@ -53,6 +54,7 @@ def showUsage():
    print "Usage:"
    print "otl2html.py inputfile"
    print "otl2html.py [-t type] [-s] inputfile"
+   print "otl2html.py [-v]"
    print "    -t     Specify the format type"
    print "    Types: simple - uses HTML tags <H1> through <H9>"
    print "           bullets - uses HTML tags <UL> and <LI>"
@@ -60,7 +62,22 @@ def showUsage():
    print "           roman - uses HTML tags <OL> and <LI> for I.I.I"
    print "           alpha - uses HTML tags <OL> and <LI> for A.A.A"
    print "    -s     Slide show output for use with HtmlSlides"
+   print "    -v     Print version (RCS) information"
    print "output is on STDOUT"
+   print
+
+# version
+# print the RCS version information
+# input: none
+# output: RSC version information is printed on the console
+ 
+def showVersion():
+   print
+   print "RCS"
+   print " $Revision: 1.9 $"
+   print " $Date: 2001/10/22 21:07:30 $"
+   print " $Author: noel $"
+   print " $Source: /home/noel/active/projects/NoelOTL/RCS/otl2html.py,v $"
    print
 
 # getArgs
@@ -87,6 +104,12 @@ def getArgs():
 	  i = i + 1				# increment the pointer
         elif (sys.argv[i] == "--help"):
 	  showUsage()
+	  sys.exit()
+        elif (sys.argv[i] == "-h"):
+	  showUsage()
+	  sys.exit()
+        elif (sys.argv[i] == "-v"):
+	  showVersion()
 	  sys.exit()
 	elif (sys.argv[i][0] == "-"):
 	  print "Error!  Unknown option.  Aborting"
@@ -212,7 +235,7 @@ def flatten(idx):
 def printHeader(linein):
   print "<HTML><TITLE>" + linein + "</TITLE>"
   print"<!--  $Revsion:$ -->"
-  print"<!--  $Date: 2001/10/10 20:12:52 $ -->"
+  print"<!--  $Date: 2001/10/22 21:07:30 $ -->"
   print"<!--  $Author: noel $ -->"
 
 def printStyle(linein):
@@ -223,7 +246,11 @@ def printStyle(linein):
   print "<DIV NAME=\"Main\">"
 
 def printFooter():
-  print "</DIV></BODY></HTML>"
+  print "</DIV>"
+  print "<br><br><br><font size=1>Copyright (C) 2002 Cowboyz.com, Inc. "
+  print "All Rights Reserved</font><br>"
+  print inputfile + "&nbsp&nbsp " + strftime("%Y/%m/%d %H:%M",localtime(time()))
+  print "</BODY></HTML>"
 
 def main():
   getArgs()
