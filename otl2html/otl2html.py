@@ -5,11 +5,11 @@
 # Copyright 2001 Cowboyz.com, Inc. All rights reserved
 #
 # ALPHA VERSION!!!
-# $Revision: 1.7 $
-# $Date: 2001/10/09 23:01:40 $
+# $Revision: 1.8 $
+# $Date: 2001/10/10 20:12:52 $
 # $Author: noel $
 # $Source: /home/noel/active/projects/NoelOTL/RCS/otl2html.py,v $
-# $Locker:  $
+# $Locker: noel $
 
 ###########################################################################
 # Basic function
@@ -59,7 +59,7 @@ def showUsage():
    print "           numeric - uses HTML tags <OL> and <LI> for 1.1.1"
    print "           roman - uses HTML tags <OL> and <LI> for I.I.I"
    print "           alpha - uses HTML tags <OL> and <LI> for A.A.A"
-   print "    -s     Slide show output for use with htmlslides"
+   print "    -s     Slide show output for use with HtmlSlides"
    print "output is on STDOUT"
    print
 
@@ -104,6 +104,18 @@ def getLineLevel(linein):
   x = find(linein,strstart)			# find the text index in the line
   n = count(linein,"\t",0,x)			# count the tabs
   return(n+1)					# return the count + 1 (for level)
+
+# getLineTextLevel
+# get the level of the current line (count the number of tabs)
+# input: linein - a single line that may or may not have tabs at the beginning
+# output: returns a number 1 is the lowest
+
+def getLineTextLevel(linein):
+  strstart = lstrip(linein)			# find the start of text in line
+  x = find(linein,strstart)			# find the text index in the line
+  n = count(linein,"\t",0,x)			# count the tabs
+  n = n + count(linein," ",0,x)			# count the spaces
+  return(n+1)					# return the count + 1 (for level)
     
 # processLine
 # process a single line
@@ -140,17 +152,26 @@ def processLine(linein):
 	  print "</OL>"
 	level = level - 1
     else:
-      print "\n"
+      print
     if (lstrip(rstrip(linein)) == "----------------------------------------"):
       print "<br><br><hr><br>"
     else:
       if (slides == 0):
-        print "<LI>" + lstrip(linein)
+        if (lineLevel == find(linein," ") +1 ):
+	  print "<p>" + lstrip(linein)
+	else:
+          print "<LI>" + lstrip(linein)
       else:
         if (lineLevel == 1):
-          print "<address>\n" + lstrip(linein) + "</address>"
+          if (linein[0] == " "):
+            print "<p>" + lstrip(linein)
+          else:
+            print "<address>" + lstrip(linein) + "</address>\n"
         else:
-          print "<LI>" + lstrip(linein)
+          if (lineLevel == find(linein," ") +1):
+            print "<p>" + lstrip(linein)
+          else:
+            print "<LI>" + lstrip(linein)
       
 # flatten
 # Flatten a subsection of an outline.  The index passed is the outline section
@@ -169,27 +190,29 @@ def flatten(idx):
   titleline = outline[idx]
   titlelevel = getLineLevel(titleline)
   if (getLineLevel(outline[idx+1]) > titlelevel):
-    flatoutline.append(lstrip(titleline))
+    if (titleline[titlelevel-1] != " "):
+      flatoutline.append(lstrip(titleline))
     exitflag = 0
     while (exitflag == 0):
       if (idx < len(outline)-1):
         idx = idx + 1
         currlevel = getLineLevel(outline[idx])
         if (currlevel == titlelevel + 1):
-          flatoutline.append("\t" + lstrip(outline[idx]))
+          if (currlevel == find(outline[idx]," ") +1):
+            flatoutline.append("\t " + lstrip(outline[idx]))
+          else:
+            flatoutline.append("\t" + lstrip(outline[idx]))
         elif (currlevel <= titlelevel):
           exitflag = 1
       else:
         exitflag = 1
+  level =  titlelevel
   return
-
-  
-  
 
 def printHeader(linein):
   print "<HTML><TITLE>" + linein + "</TITLE>"
   print"<!--  $Revsion:$ -->"
-  print"<!--  $Date: 2001/10/09 23:01:40 $ -->"
+  print"<!--  $Date: 2001/10/10 20:12:52 $ -->"
   print"<!--  $Author: noel $ -->"
 
 def printStyle(linein):
@@ -207,19 +230,20 @@ def main():
   flatouline = []
   file = open(inputfile,"r")
   if (slides == 0):
-    firstLine = lstrip(file.readline())
+    firstLine = lstrip(rstrip(file.readline()))
     printHeader(firstLine)
     printStyle(firstLine)
-    linein = lstrip(file.readline())
+    linein = lstrip(rstrip(file.readline()))
     while linein != "":
       processLine(linein)
       linein = file.readline()
   else:
-    linein = lstrip(file.readline())
+    linein = lstrip(rstrip(file.readline()))
     outline.append(linein)
+    linein = lstrip(rstrip(file.readline()))
     while linein != "":
       outline.append("\t" + linein)
-      linein = file.readline()
+      linein = rstrip(file.readline())
     for i in range (0,len(outline)-1):
       flatten(i)
     printHeader(flatoutline[0])
