@@ -5,8 +5,8 @@
 # Copyright 2001 Noel Henson All rights reserved
 #
 # ALPHA VERSION!!!
-# $Revision: 1.27 $
-# $Date: 2004/11/27 22:13:09 $
+# $Revision: 1.28 $
+# $Date: 2004/11/28 13:53:36 $
 # $Author: noel $
 # $Source: /home/noel/active/NoelOTL/RCS/otl2html.py,v $
 # $Locker: noel $
@@ -31,6 +31,7 @@
 
 import sys
 from string import *
+from re import *
 from time import *
 
 ###########################################################################
@@ -83,8 +84,8 @@ def showUsage():
 def showVersion():
    print
    print "RCS"
-   print " $Revision: 1.27 $"
-   print " $Date: 2004/11/27 22:13:09 $"
+   print " $Revision: 1.28 $"
+   print " $Date: 2004/11/28 13:53:36 $"
    print " $Author: noel $"
    print " $Source: /home/noel/active/NoelOTL/RCS/otl2html.py,v $"
    print
@@ -327,10 +328,17 @@ def handleTable(linein,lineLevel):
 	  inBodyText = 3
   print handleTableRow(linein,lineLevel), 
 
-# beautifyLine(line)
-# replace some simle tags with with html beautifiers
-# input: line - a single line that may or may not have tabs at the beginning
-# output: line
+# linkOrImage
+# if there is a link to an image or another page, process it
+# input: line
+# output: modified line
+
+def linkOrImage(line):
+  line = sub('\[(\S+?)\]','<img src="\\1">',line)
+  line = sub('\[(\S+)\s(.*?)\]','<a href="\\1">\\2</a>',line)
+  line = replace(line,'<img src="X">','[X]')
+  line = replace(line,'<img src="_">','[_]')
+  return line
 
 def beautifyLine(line):
   if (lstrip(rstrip(line)) == "----------------------------------------"):
@@ -342,16 +350,15 @@ def beautifyLine(line):
   while (line != out):
 
 	  line = out
-	  out = replace(out,'**','<strong>',1)
-	  out = replace(out,'//','<i>',1)
-	  out = replace(out,'+++','<code>',1)
-	  out = replace(out,'---','<strike>',1)
-
-	  out = replace(out,'**','</strong>',1)
-	  out = replace(out,'//','</i>',1)
-	  out = replace(out,'+++','</code>',1)
-	  out = replace(out,'---','</strike>',1)
-
+	  out = linkOrImage(out)
+	# out = replace(out,'**','<strong>',1)
+	  out = sub('\*\*(.*?)\*\*','<strong>\\1</strong>',out)
+	# out = replace(out,'//','<i>',1)
+	  out = sub('\/\/(.*?)\/\/','<i>\\1</i>',out)
+	# out = replace(out,'+++','<code>',1)
+	  out = sub('\+\+\+(.*?)\+\+\+','<code>\\1</code>',out)
+	# out = replace(out,'---','<strike>',1)
+	  out = sub('\-\-\-(.*?)\-\-\-','<strike>\\1</strike>',out)
   return out
 
 # closeLevels
@@ -383,6 +390,7 @@ def closeLevels():
 def processLine(linein):
   global level, formatMode, slides, hideComments, inBodyText, styleSheet, inlineStyle
   if (lstrip(linein) == ""): return
+  linein = beautifyLine(linein)
   lineLevel = getLineLevel(linein)
   if ((hideComments == 0) or (lineLevel != (find(linein,"[")+1))):
       if (lineLevel > level): # increasing depth
@@ -515,8 +523,8 @@ def printHeader(linein):
   global styleSheet, inlineStyle
   print "<!DOCTYPE HTML PUBLIC \"-//W3C//DTD HTML 4.01//EN\" \"http://www.w3.org/TR/html4/strict.dtd\">"
   print "<html><head><title>" + linein + "</title>"
-  print"<!--  $Revision: 1.27 $ -->"
-  print"<!--  $Date: 2004/11/27 22:13:09 $ -->"
+  print"<!--  $Revision: 1.28 $ -->"
+  print"<!--  $Date: 2004/11/28 13:53:36 $ -->"
   print"<!--  $Author: noel $ -->"
   file = open(styleSheet,"r")
   if (styleSheet != "" and inlineStyle == 0):
@@ -557,7 +565,7 @@ def main():
     linein = beautifyLine(lstrip(rstrip(file.readline())))
     while linein != "":
       processLine(linein)
-      linein = beautifyLine(file.readline())
+      linein = file.readline()
     closeLevels()
   else:
     linein = beautifyLine(lstrip(rstrip(file.readline())))
@@ -565,7 +573,7 @@ def main():
     linein = lstrip(rstrip(file.readline()))
     while linein != "":
       outline.append("\t" + linein)
-      linein = beautifyLine(rstrip(file.readline()))
+      linein = rstrip(file.readline())
     for i in range (0,len(outline)-1):
       flatten(i)
     printHeader(flatoutline[0])
