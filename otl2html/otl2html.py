@@ -2,13 +2,13 @@
 # otl2html.py
 # convert a tab-formatted outline from VIM to HTML
 #
-# Copyright 2001 Cowboyz.com, Inc. All rights reserved
+# Copyright 2001 Noel Henson All rights reserved
 #
 # ALPHA VERSION!!!
-# $Revision: 1.11 $
-# $Date: 2002/01/24 01:09:28 $
+# $Revision: 1.12 $
+# $Date: 2002/01/25 19:12:13 $
 # $Author: noel $
-# $Source: /home/noel/active/projects/NoelOTL/RCS/otl2html.py,v $
+# $Source: /home/noel/apps/NoelOTL/RCS/otl2html.py,v $
 # $Locker: noel $
 
 ###########################################################################
@@ -78,10 +78,10 @@ def showUsage():
 def showVersion():
    print
    print "RCS"
-   print " $Revision: 1.11 $"
-   print " $Date: 2002/01/24 01:09:28 $"
+   print " $Revision: 1.12 $"
+   print " $Date: 2002/01/25 19:12:13 $"
    print " $Author: noel $"
-   print " $Source: /home/noel/active/projects/NoelOTL/RCS/otl2html.py,v $"
+   print " $Source: /home/noel/apps/NoelOTL/RCS/otl2html.py,v $"
    print
 
 # getArgs
@@ -244,7 +244,7 @@ def flatten(idx):
 def printHeader(linein):
   print "<HTML><TITLE>" + linein + "</TITLE>"
   print"<!--  $Revsion:$ -->"
-  print"<!--  $Date: 2002/01/24 01:09:28 $ -->"
+  print"<!--  $Date: 2002/01/25 19:12:13 $ -->"
   print"<!--  $Author: noel $ -->"
 
 def printStyle(linein):
@@ -258,7 +258,7 @@ def printFooter():
   global slides
   print "</DIV>"
   if (slides == 0):
-	  print "<br><br><br><font size=1>Copyright (C) 2002 Cowboyz.com, Inc. "
+	  print "<br><br><br><font size=1>Copyright (C) 2002 Noel Henson "
 	  print "All Rights Reserved</font><br>"
 	  print inputfile + "&nbsp&nbsp " + strftime("%Y/%m/%d %H:%M",localtime(time()))
   print "</BODY></HTML>"
