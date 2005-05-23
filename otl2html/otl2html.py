@@ -5,8 +5,8 @@
 # Copyright 2001 Noel Henson All rights reserved
 #
 # ALPHA VERSION!!!
-# $Revision: 1.39 $
-# $Date: 2005/02/23 14:09:40 $
+# $Revision: 1.40 $
+# $Date: 2005/03/01 00:34:46 $
 # $Author: noel $
 # $Source: /home/noel/active/NoelOTL/RCS/otl2html.py,v $
 # $Locker: noel $
@@ -148,8 +148,8 @@ def showSyntax():
 def showVersion():
    print
    print "RCS"
-   print " $Revision: 1.39 $"
-   print " $Date: 2005/02/23 14:09:40 $"
+   print " $Revision: 1.40 $"
+   print " $Date: 2005/03/01 00:34:46 $"
    print " $Author: noel $"
    print
 
@@ -429,6 +429,28 @@ def divName(line):
 	line = replace(line, ' ', '_')
 	return'<div class="' + line + '">'
 
+# getTitleText(line)
+# extract some meaningful text to make the document title from the line
+# input: line
+# output: modified line
+def getTitleText(line):
+  out = sub('.*#(.*)#.*','\\1',line);
+  out = sub('<.*>','',out);
+#  if (out != ""): out = sub('\"(.*?)\"','\\1',line);
+  return(out);
+
+# stripTitleText(line)
+# strip the title text if it is enclosed in double-quotes
+# input: line
+# output: modified line
+def stripTitleText(line):
+  out = sub('#\W*.*#','',line);
+  return(out);
+
+# beautifyLine(line)
+# do some optional, simple beautification of the text in a line
+# input: line
+# output: modified line
 def beautifyLine(line):
   if (lstrip(rstrip(line)) == "----------------------------------------"):
         return "<br><hr><br>"
@@ -633,9 +655,9 @@ def flatten(idx):
 def printHeader(linein):
   global styleSheet, inlineStyle
   print "<!DOCTYPE HTML PUBLIC \"-//W3C//DTD HTML 4.01 Transitional//EN\" \"http://www.w3.org/TR/html4/strict.dtd\">"
-  print "<html><head><title>" + linein + "</title>"
-  print"<!--  $Revision: 1.39 $ -->"
-  print"<!--  $Date: 2005/02/23 14:09:40 $ -->"
+  print "<html><head><title>" + getTitleText(linein) + "</title>"
+  print"<!--  $Revision: 1.40 $ -->"
+  print"<!--  $Date: 2005/03/01 00:34:46 $ -->"
   print"<!--  $Author: noel $ -->"
   file = open(styleSheet,"r")
   if (styleSheet != "" and inlineStyle == 0):
@@ -652,7 +674,7 @@ def printHeader(linein):
 
 def printFirstLine(linein):
   print "<div class=\"DocTitle\">"
-  print "<h1>" + rstrip(lstrip(linein)) +"</h1>"
+  print "<h1>" + stripTitleText(rstrip(lstrip(linein))) +"</h1>"
   print "</div>"
   print "<div class=\"MainPage\">"
 
