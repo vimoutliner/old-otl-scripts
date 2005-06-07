@@ -5,8 +5,8 @@
 # Copyright 2001 Noel Henson All rights reserved
 #
 # ALPHA VERSION!!!
-# $Revision: 1.41 $
-# $Date: 2005/05/23 22:04:45 $
+# $Revision: 1.42 $
+# $Date: 2005/06/06 14:10:55 $
 # $Author: noel $
 # $Source: /home/noel/active/NoelOTL/RCS/otl2html.py,v $
 # $Locker: noel $
@@ -113,7 +113,7 @@ def showSyntax():
    print "	//	Italic. Example: //Italic Text//"
    print "	+++	Highlight. Example: +++Highlight Text+++"
    print "	---	Strikeout. Example: ---Strikeout Text---"
-   print " 	Insane	---+++//**Wow! This is insane!**//+++//"
+   print " 	Insane	---+++//**Wow! This is insane!**//+++---"
    print "		Just remember to keep it all on one line."
    print "   Horizontal Rule"
    print "	----------------------------------------  (40 dashes)."
@@ -150,8 +150,8 @@ def showSyntax():
 def showVersion():
    print
    print "RCS"
-   print " $Revision: 1.41 $"
-   print " $Date: 2005/05/23 22:04:45 $"
+   print " $Revision: 1.42 $"
+   print " $Date: 2005/06/06 14:10:55 $"
    print " $Author: noel $"
    print
 
@@ -907,8 +907,8 @@ def printHeader(linein):
   global styleSheet, inlineStyle
   print "<!DOCTYPE HTML PUBLIC \"-//W3C//DTD HTML 4.01 Transitional//EN\" \"http://www.w3.org/TR/html4/strict.dtd\">"
   print "<html><head><title>" + getTitleText(linein) + "</title>"
-  print"<!--  $Revision: 1.41 $ -->"
-  print"<!--  $Date: 2005/05/23 22:04:45 $ -->"
+  print"<!--  $Revision: 1.42 $ -->"
+  print"<!--  $Date: 2005/06/06 14:10:55 $ -->"
   print"<!--  $Author: noel $ -->"
   try:
 	file = open(styleSheet,"r") 
