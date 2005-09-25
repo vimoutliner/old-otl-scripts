@@ -1,28 +1,36 @@
 #!/usr/bin/python
-# otl2html.py
-# convert a tab-formatted outline from VIM to HTML
+# otl2table.py
+# convert a tab-formatted outline from VIM to tab-delimited table
 #
-# Copyright 2001 Noel Henson All rights reserved
+# Copyright (c) 2004 Noel Henson All rights reserved
 #
 # ALPHA VERSION!!!
-# $Revision: 1.18 $
-# $Date: 2003/11/27 16:06:21 $
+# $Revision: 1.1 $
+# $Date: 2004/03/22 15:42:17 $
 # $Author: noel $
-# $Source: /home/noel/active/NoelOTL/RCS/otl2html.py,v $
-# $Locker:  $
+# $Source: /home/noel/active/otl2table/RCS/otl2table.py,v $
+# $Locker: noel $
 
 ###########################################################################
 # Basic function
 #
 #	This program accepts text outline files and converts them
-#	to HTML.  The outline levels are indicated by tabs. A line with no
-#	tabs is assumed to be part of the highest outline level.
+#	the tab-delimited text tables.
+#	This:
+#		Test
+#			Dog
+#				Barks
+#				Howls
+#			Cat
+#				Meows
+#				Yowls
+#	Becomes this:
+#		Test	Dog	Barks
+#		Test	Dog	Howls
+#		Test	Cat	Meows
+#		Test	Cat	Yowls
 #
-#	10 outline levels are supported.  These loosely correspond to the
-#	HTML H1 through H9 tags.  Alphabetic, numeric and bullet formats
-#	are also supported.
-#
-#	CSS support has been added.
+#	This will make searching for groups of data and report generation easier.
 #
 
 
@@ -31,22 +39,16 @@
 
 import sys
 from string import *
-from time import *
+#from time import *
 
 ###########################################################################
 # global variables
 
-formatMode = "simple"
-copyright = ""
 level = 0
-slides = 0
-hideComments = 0
 inputFile = ""
-outline = []
-flatoutline = []
-inBodyText = 0
-styleSheet = ""
-inlineStyle = 0
+formatMode = "tab"
+noTrailing = 0
+columns = []
 
 ###########################################################################
 # function definitions
@@ -59,27 +61,15 @@ inlineStyle = 0
 def showUsage():
    print
    print "Usage:"
-   print "otl2html.py [options] inputfile > outputfile"
+   print "otl2table.py [options] inputfile > outputfile"
    print "Options"
-   print "    -t type        Specify the format type."
+   print "    -n              Don't include trailing columns."
+   print "    -t type        Specify field separator type."
    print "                   Types:"
-   print "                      simple - uses HTML tags <h1> through <h9>"
+   print "                      tab - separate fields with tabs (default)"
+   print "                      csv - separate fields with ,"
+   print "                      qcsv - separate fields with \",\""
    print "                      bullets - uses HTML tags <ul> and <li>"
-   print "                      numeric - uses HTML tags <ol> and <li> for 1.1.1"
-   print "                      roman - uses HTML tags <ol> and <li> for I.I.I"
-   print "                      alpha - uses HTML tags <ol> and <li> for A.A.A"
-   print "                      indent - uses HTML tags <ol> and <li>"
-   print "                      Not compatible with -s or -S."
-   print "    -p              Presentation: slide show output for use with HtmlSlides."
-   print "    -s sheet        Use the specified style sheet with a link. Not compatible"
-   print "                    with -t."
-   print "    -S sheet        Include the specified style sheet in-line the output. For"
-   print "                    encapsulated style. Not compatible with -t. Hide"
-   print "    -c              comments (line with [ as the first non-whitespace"
-   print "                    character. Ending with ] is optional."
-   print "    -C copyright    Override the internal copyright notice with the"
-   print "                    one supplied in the quoted string following this"
-   print "                    flag. Single or double quotes can be used."
    print "    -v              Print version (RCS) information."
    print "output is on STDOUT"
    print
@@ -92,10 +82,10 @@ def showUsage():
 def showVersion():
    print
    print "RCS"
-   print " $Revision: 1.18 $"
-   print " $Date: 2003/11/27 16:06:21 $"
+   print " $Revision: 1.1 $"
+   print " $Date: 2004/03/22 15:42:17 $"
    print " $Author: noel $"
-   print " $Source: /home/noel/active/NoelOTL/RCS/otl2html.py,v $"
+   print " $Source: /home/noel/active/otl2table/RCS/otl2table.py,v $"
    print
 
 # getArgs
@@ -104,36 +94,18 @@ def showVersion():
 # output: possible console output for help, switch variables may be set
 
 def getArgs():
-  global inputfile, debug, formatMode, slides, hideComments, copyright, styleSheet, inlineStyle
+  global inputfile, debug, noTrailing, formatMode
   if (len(sys.argv) == 1): 
     showUsage()
     sys.exit()()
   else:
     for i in range(len(sys.argv)):
       if (i != 0):
-        if   (sys.argv[i] == "-d"): debug = 1	# test for debug flag
-        elif (sys.argv[i] == "-?"):		# test for help flag
-	  showUsage()				# show the help
-	  sys.exit()				# exit
-        elif (sys.argv[i] == "-p"):		# test for the slides flag
-	  slides = 1				# set the slides flag
-        elif (sys.argv[i] == "-c"):		# test for the comments flag
-	  hideComments = 1			# set the comments flag
-        elif (sys.argv[i] == "-t"):		# test for the type flag
-	  formatMode = sys.argv[i+1]		# get the type
-	  i = i + 1				# increment the pointer
-        elif (sys.argv[i] == "-C"):		# test for the copyright flag
-	  copyright = sys.argv[i+1]		# get the copyright
-	  i = i + 1				# increment the pointer
-        elif (sys.argv[i] == "-s"):		# test for the style sheet flag
-	  styleSheet = sys.argv[i+1]		# get the style sheet name
-	  formatMode = "indent"			# set the format
-	  i = i + 1				# increment the pointer
-        elif (sys.argv[i] == "-S"):		# test for the style sheet flag
-	  styleSheet = sys.argv[i+1]		# get the style sheet name
-	  formatMode = "indent"			# set the format
-	  inlineStyle = 1
-	  i = i + 1				# increment the pointer
+        if   (sys.argv[i] == "-d"): debug = 1		# test for debug flag
+        if   (sys.argv[i] == "-n"): noTrailing = 1	# test for noTrailing flag
+        elif (sys.argv[i] == "-?"):			# test for help flag
+	  showUsage()					# show the help
+	  sys.exit()					# exit
         elif (sys.argv[i] == "--help"):
 	  showUsage()
 	  sys.exit()
@@ -143,6 +115,9 @@ def getArgs():
         elif (sys.argv[i] == "-v"):
 	  showVersion()
 	  sys.exit()
+        elif (sys.argv[i] == "-t"):		# test for the type flag
+	  formatMode = sys.argv[i+1]		# get the type
+	  i = i + 1				# increment the pointer
 	elif (sys.argv[i][0] == "-"):
 	  print "Error!  Unknown option.  Aborting"
 	  sys.exit()
@@ -172,46 +147,38 @@ def getLineTextLevel(linein):
   n = n + count(linein," ",0,x)			# count the spaces
   return(n+1)					# return the count + 1 (for level)
     
-# colonStrip(line)
-# stip a leading ':', if it exists
-# input: line
-# output: returns a string with a stipped ':'
-
-def colonStrip(line):
-	if (line[0] == ":"): return lstrip(line[1:])
-        else: return line
-
-# handleBodyText
-# print body text lines with a class indicating level, if style sheets
-# are being used. otherwise print just <p>
-# input: linein - a single line that may or may not have tabs at the beginning
-# output: through standard out
-
-def handleBodyText(linein,lineLevel):
-  global inBodyText
-  print "<p",
-  if (styleSheet != ""):
-    print " class=\"P" + str(lineLevel) + "\"",
-    inBodyText = 1
-  print ">" + colonStrip(rstrip(lstrip(linein))),
-
 # closeLevels
-# generate the number of </ul> or </ol> tags necessary to proplerly finish
-# input: format - a string indicating the mode to use for formatting
+# print the assembled line
+# input: columns - an array of 10 lines (for 10 levels)
 #        level - an integer between 1 and 9 that show the current level
 # 	          (not to be confused with the level of the current line)
+# 	 noTrailing - don't print trailing, empty columns
 # output: through standard out
 
 def closeLevels():
-  global level, formatMode
-  while (level > 0):
-    if (formatMode == "bullets"):
-      print "</ul>"
-    if (formatMode == "alpha") or (formatMode == "numeric") or \
-    (formatMode == "roman") or (formatMode == "indent"):
-      print "</ol>"
-
-    level = level - 1
+  global level,columns,noTrailing,formatMode
+  if noTrailing == 1 :
+	  colcount = level
+  else:
+	   colcount = 10
+  if formatMode == "tab":
+	  for i in range(1,colcount+1):
+		  print columns[i] + "\t",
+	  print
+  elif formatMode == "csv":
+	  output = ""
+	  for i in range(1,colcount):
+		  output = output + columns[i] + ","
+	  output = output + columns[colcount]
+	  print output
+  elif formatMode == "qcsv":
+	  output = "\""
+	  for i in range(1,colcount):
+		  output = output + columns[i] + "\",\""
+	  output = output + columns[colcount] + "\""
+	  print output
+  for i in range(level+1,10):
+	  columns[i] = ""
 
 
 # processLine
@@ -223,197 +190,32 @@ def closeLevels():
 # output: through standard out
 
 def processLine(linein):
-  global level, formatMode, slides, hideComments, inBodyText, styleSheet, inlineStyle
+  global level, noTrailing, columns
   if (lstrip(linein) == ""): return
   lineLevel = getLineLevel(linein)
-  if ((hideComments == 0) or (lineLevel != (find(linein,"[")+1))):
-    if (formatMode == "simple"):
-      print "<h" + str(lineLevel) + ">" + lstrip(linein) + "</h" + str(lineLevel) + ">"
-    else:
-      if (lineLevel > level):
-       while (lineLevel > level):
-    	if (formatMode == "bullets"):
-          if (inBodyText == 1):
-	    print"</p>"
-	    inBodyText = 0
-    	  print "<ul>"
-    	elif (formatMode == "roman"):
-          if (inBodyText == 1):
-	    print"</p>"
-	    inBodyText = 0
-    	  print "<ol type=\"I\">"
-    	elif (formatMode == "numeric"):
-          if (inBodyText == 1):
-	    print"</p>"
-	    inBodyText = 0
-    	  print "<ol type=\"1\">"
-    	elif (formatMode == "alpha"):
-          if (inBodyText == 1):
-	    print"</p>"
-	    inBodyText = 0
-    	  print "<ol type=\"A\">"
-    	elif (formatMode == "indent"):
-          if (inBodyText == 1):
-	    print"</p>"
-	    inBodyText = 0
-    	  print "<ol>"
-    	else:
-    	  sys.exit("Error! Unknown formatMode type")
-    	level = level + 1
-      elif (lineLevel < level):
-       while (lineLevel < level):
-  	if (formatMode == "bullets"):
-          if (inBodyText == 1):
-	    print"</p>"
-	    inBodyText = 0
-  	  print "</ul>"
-  	else:
-          if (inBodyText == 1):
-	    print"</p>"
-	    inBodyText = 0
-  	  print "</ol>"
-  	level = level - 1
-      else:
-        print
-      if (lstrip(rstrip(linein)) == "----------------------------------------"):
-        print "<br><br><hr><br>"
-      else:
-        if (slides == 0):
-          if (lineLevel == find(linein," ") +1 ) or \
-	  (lineLevel == find(linein,":") +1 ): 
-		  if (inBodyText == 0): handleBodyText(linein,lineLevel)
-            	  else: print colonStrip(rstrip(lstrip(linein))),
-  	  else:
-            if (inBodyText == 1):
-	    	    print"</p>"
-		    inBodyText = 0
-            print "<li",
-	    if (styleSheet != ""):
-              print " class=\"L" + str(lineLevel) + "\"",
-            print ">" + rstrip(lstrip(linein)),
-        else:
-          if (lineLevel == 1):
-            if (linein[0] == " "):
-	      if (inBodyText == 0):
-		handleBodyText(linein,lineLevel)
-	      else: print rstrip(lstrip(linein)),
-            else:
-              print "<address>"
-	      print rstrip(lstrip(linein)),
-	      print "</address>\n"
-          else:
-	    if (lineLevel == find(linein," ") +1 ) or \
-	    (lineLevel == find(linein,":") +1 ): 
-		    if (inBodyText == 0):
-		        handleBodyText(linein,lineLevel)
-	      	    else: print rstrip(lstrip(linein)),
-            else:
-              if (inBodyText == 1):
-	    	    print"</p>"
-		    inBodyText = 0
-              print "<li",
-	      if (styleSheet != ""):
-                print " class=\"LI.L" + str(lineLevel) + "\"",
-              print ">" + rstrip(lstrip(linein)),
-      
-# flatten
-# Flatten a subsection of an outline.  The index passed is the outline section
-# title.  All sublevels that are only one level deeper are indcluded in the current
-# subsection.  Then there is a recursion for those items listed in the subsection.
-# Exits when the next line to be processed is of the same or lower outline level.
-#  (lower means shallower)
-# input: idx - the index into the outline.  The indexed line is the title.
-# output: adds reformatted lines to flatoutline[]
-
-def flatten(idx):
-  if (outline[idx] == ""):
-    return
-  if (len(outline) <= idx):
-    return
-  titleline = outline[idx]
-  titlelevel = getLineLevel(titleline)
-  if (getLineLevel(outline[idx+1]) > titlelevel):
-    if (titleline[titlelevel-1] != " "):
-      flatoutline.append(lstrip(titleline))
-    exitflag = 0
-    while (exitflag == 0):
-      if (idx < len(outline)-1):
-        idx = idx + 1
-        currlevel = getLineLevel(outline[idx])
-        if (currlevel == titlelevel + 1):
-          if (currlevel == find(outline[idx]," ") +1):
-            flatoutline.append("\t " + lstrip(outline[idx]))
-          else:
-            flatoutline.append("\t" + lstrip(outline[idx]))
-        elif (currlevel <= titlelevel):
-          exitflag = 1
-      else:
-        exitflag = 1
-  level =  titlelevel
-  return
-
-def printHeader(linein):
-  global styleSheet, inlineStyle
-  print "<!DOCTYPE HTML PUBLIC \"-//W3C//DTD HTML 4.01//EN\" \"http://www.w3.org/TR/html4/strict.dtd\">"
-  print "<html><head><title>" + linein + "</title>"
-  print"<!--  $Revision: 1.18 $ -->"
-  print"<!--  $Date: 2003/11/27 16:06:21 $ -->"
-  print"<!--  $Author: noel $ -->"
-  file = open(styleSheet,"r")
-  if (styleSheet != "" and inlineStyle == 0):
-    print "<link href=\"" + styleSheet + "\" rel=\"stylesheet\" type=\"text/css\">"
-  if (styleSheet != "" and inlineStyle == 1):
-    print "<style type=\"text/css\">"
-    csslinein = file.readline()
-    while csslinein != "":
-      print csslinein,
-      csslinein = file.readline()
-    file.close()
-    print "</style></head>"
-  print "<body>"
-  print "<div title=\"DocTitle\">"
-  print "<h1>" + rstrip(lstrip(linein)) +"</h1>"
-  print "</div>"
-  print "<div TITLE=\"Main\">"
-
-def printFooter():
-  global slides
-  print "</div>"
-  if (slides == 0):
-          print "<div title=\"Footer\">"
-	  print "<hr>"
-	  print copyright
-	  print "<br>"
-	  print inputfile + "&nbsp&nbsp " + strftime("%Y/%m/%d %H:%M",localtime(time()))
-          print "</div>"
-  print "</body></html>"
-
-def main():
-  getArgs()
-  flatouline = []
-  file = open(inputfile,"r")
-  if (slides == 0):
-    firstLine = lstrip(rstrip(file.readline()))
-    printHeader(firstLine)
-    linein = lstrip(rstrip(file.readline()))
-    while linein != "":
-      processLine(linein)
-      linein = file.readline()
-    closeLevels()
+  if (lineLevel > level):
+	  columns[lineLevel] = lstrip(rstrip(linein))
+	  level = lineLevel
+  elif (lineLevel == level):
+	  closeLevels()
+	  columns[lineLevel] = lstrip(rstrip(linein))
   else:
-    linein = lstrip(rstrip(file.readline()))
-    outline.append(linein)
-    linein = lstrip(rstrip(file.readline()))
-    while linein != "":
-      outline.append("\t" + linein)
-      linein = rstrip(file.readline())
-    for i in range (0,len(outline)-1):
-      flatten(i)
-    printHeader(flatoutline[0])
-    for i in range (0,len(flatoutline)):
-      processLine(flatoutline[i])
-    
-  printFooter()
+	  closeLevels()
+	  level = lineLevel
+	  columns[lineLevel] = lstrip(rstrip(linein))
+	  
+      
+def main():
+  global columns
+  getArgs()
+  file = open(inputfile,"r")
+  for i in range(11):
+	  columns.append("")
+  linein = lstrip(rstrip(file.readline()))
+  while linein != "":
+    processLine(linein)
+    linein = file.readline()
+  closeLevels()
   file.close()
 
 main()
