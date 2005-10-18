@@ -7,8 +7,8 @@
 # Copyright (c) 2005 Noel Henson All rights reserved
 #
 # ALPHA VERSION!!!
-# $Revision: 1.1 $
-# $Date: 2005/10/04 13:08:21 $
+# $Revision: 1.2 $
+# $Date: 2005/10/18 10:32:28 $
 # $Author: noel $
 # $Source: /home/noel/active/otl2tags/RCS/otl2tags.py,v $
 # $Locker: noel $
@@ -23,6 +23,9 @@
 # Change Log
 #
 #	$Log: otl2tags.py,v $
+#	Revision 1.2  2005/10/18 10:32:28  noel
+#	Works except for leaving levels and some other minutia.
+#
 #	Revision 1.1  2005/10/04 13:08:21  noel
 #	Initial revision
 #
@@ -51,6 +54,15 @@ v = {}				# outline variables
 # function definitions
 
 # usage
+# print debug statements
+# input: string
+# output: string printed to standard out
+
+def dprint(*vals):
+	global debug
+	if debug != 0: print vals
+
+# usage
 # print the simplest form of help
 # input: none
 # output: simple command usage is printed on the console
@@ -75,8 +87,8 @@ def showUsage():
 def showVersion():
 	 print
 	 print "RCS"
-	 print " $Revision: 1.1 $"
-	 print " $Date: 2005/10/04 13:08:21 $"
+	 print " $Revision: 1.2 $"
+	 print " $Date: 2005/10/18 10:32:28 $"
 	 print " $Author: noel $"
 	 print " $Source: /home/noel/active/otl2tags/RCS/otl2tags.py,v $"
 	 print
@@ -132,6 +144,7 @@ def printConfig():
 	  for x in config.options(list[i]):
 	    if (x !="name") and (x !="__name__"):
 	      print x,":", config.get(list[i],x)
+  print"----------------------------------------------------"
   print 
 
 # readFile
@@ -203,6 +216,15 @@ def dashStrip(line):
 
 def greaterStrip(line):
 	if (line[0] == ">"): return lstrip(line[1:])
+        else: return line
+
+# lessStrip(line)
+# strip a leading '>', if it exists
+# input: line
+# output: returns a string with a stripped '>'
+
+def lessStrip(line):
+	if (line[0] == "<"): return lstrip(line[1:])
         else: return line
 
 # pipeStrip(line)
@@ -319,8 +341,7 @@ def nextHeadingAtLevel(linenum,lvl):
 def isParent(linenum):
 	global lines
 	if (linenum < len(lines) - 1):
-		next = nextHeading(linenum)
-		if (indentLevel(linenum) < indentLevel(next)): return 1
+		if (indentLevel(linenum) < indentLevel(linenum+1)): return 1
 		else: return 0
 	else: return 0
 
@@ -349,9 +370,8 @@ def isLastChild(linenum,mylevel):
 	global lines
 	if (linenum < len(lines)):
 		next = nextHeadingAtLevel(linenum,mylevel)
-		print "nx:",next
-		print "lpl:",indentLevel(linenum),"nxl:",indentLevel(next)
-		if (indentLevel(linenum) > indentLevel(next)): return 1
+		dprint("nx:",next,"lpl:",indentLevel(linenum),"nxl:",indentLevel(next))
+		if (mylevel > indentLevel(next)): return 1
 		else: return 0
 	else: return 0
 
@@ -503,24 +523,24 @@ def handleHeading():
 
 	global linePtr, lines, level, v, exitlevel
 
-	mylevel = level
 	v["%%"] = lstrip(rstrip(lines[linePtr]))
 	if getHeadingType(linePtr) == 'normal':
 		if isFirstChild(linePtr): 
 			level = level + 1
-			mylevel = level
 			print subVars("Headings","before-headings")
 		print subVars("Headings","heading")
 		if isParent(linePtr):
-			linePtr = nextHeading(linePtr) 
-			print"ho:",linePtr
+#			linePtr = nextHeading(linePtr) 
+			linePtr = linePtr + 1
+			dprint("ho:",linePtr)
 			handleObjects()
-		print "lp:",linePtr,"ml:",mylevel
-		if isLastChild(linePtr,mylevel): 
+			dprint("xl:",level)
+		dprint("lp:",linePtr,"ml:",level)
+		if isLastChild(linePtr,level): 
 			print subVars("Headings","after-headings")
 			level = level - 1
 			exitlevel = 1
-			print "lc"
+			dprint("lc")
 	elif getHeadingType(linePtr) == 'bulleted':
 		v["%%"] = dashStrip(v["%%"])
 		if isFirstChild(linePtr): 
@@ -530,9 +550,10 @@ def handleHeading():
 		if isParent(linePtr):
 			linePtr = linePtr + 1
 			handleObjects()
-		if isLastChild(linePtr,mylevel): 
+		if isLastChild(linePtr,level): 
 			print subVars("Headings","after-bulleted-headings")
 			level = level - 1
+			exitlevel = 1
 	elif getHeadingType(linePtr) == 'numbered':
 		v["%%"] = plusStrip(v["%%"])
 		if isFirstChild(linePtr): 
@@ -542,9 +563,10 @@ def handleHeading():
 		if isParent(linePtr):
 			linePtr = linePtr + 1
 			handleObjects()
-		if isLastChild(linePtr,mylevel): 
+		if isLastChild(linePtr,level): 
 			print subVars("Headings","after-numbered-headings")
 			level = level - 1
+			exitlevel = 1
 	else: 
 		print
 		print "Error: unknown heading type"
@@ -571,6 +593,93 @@ def handleText():
 	if isLastTextLine(linePtr): 
 		print subVars("Text","after-text")
 		level = level - 1
+		exitlevel = 1
+
+# isAlignRight
+# return flag
+# input: coldata, a string
+
+def isAlignRight(coldata):
+  l = len(coldata)
+  if (coldata[0:2] == "  ") and (coldata[l-2:l] != "  "): return 1
+  else: return 0
+
+# isAlignLeft
+# return flag
+# input: coldata, a string
+
+def isAlignLeft(coldata):
+  l = len(coldata)
+  if (coldata[0:2] != "  ") and (coldata[l-2:l] == "  "): return 1
+  else: return 0
+
+# isAlignCenter
+# return flag
+# input: coldata, a string
+
+def isAlignCenter(coldata):
+  l = len(coldata)
+  if (coldata[0:2] == "  ") and (coldata[l-2:l] == "  "): return 1
+  else: return 0
+
+# handleTableColumns
+# process a table row's columns and output the converted data
+# input: globals
+# output: standard out
+
+def handleTableRow():
+	
+	coldata = lstrip(rstrip(v["%%"]))
+	coldata = coldata.split("|")
+	print subVars("Tables","before-table-row")
+	for i in range(1,len(coldata)):
+		v["%%"] = lstrip(rstrip(coldata[i]))
+		if isAlignCenter(coldata[i]): print subVars("Tables","table-column-center")
+		elif isAlignRight(coldata[i]): print subVars("Tables","table-column-right")
+		elif isAlignLeft(coldata[i]): print subVars("Tables","table-column-left")
+		else:  print subVars("Tables","table-column")
+	print subVars("Tables","after-table-row")
+
+# handleTableHeaderColumns
+# process a table row's columns and output the converted data
+# input: globals
+# output: standard out
+
+def handleTableHeader():
+	
+	coldata = lstrip(rstrip(v["%%"]))
+	coldata = coldata.split("|")
+	print subVars("Tables","before-table-header")
+	for i in range(2,len(coldata)):
+		v["%%"] = lstrip(rstrip(coldata[i]))
+		if isAlignCenter(coldata[i]): print subVars("Tables","table-header-column-center")
+		elif isAlignRight(coldata[i]): print subVars("Tables","table-header-column-right")
+		elif isAlignLeft(coldata[i]): print subVars("Tables","table-header-column-left")
+		else:  print subVars("Tables","table-header-column")
+	print subVars("Tables","after-table-header")
+
+# handleTable()
+# process a table and output a converted version of it
+# input: globals
+# output: standard out
+
+def handleTable():
+
+	global linePtr, level, exitlevel, v
+
+	v["%%"] = lfStrip(semicolonStrip(lstrip(rstrip(lines[linePtr]))))
+
+	if isFirstTableLine(linePtr):
+		level = level + 1
+		print subVars("Tables","before-table")
+	if getTableType(linePtr) == "tableheader": 
+		handleTableHeader()
+	else: 
+		handleTableRow()
+	if isLastTableLine(linePtr): 
+		print subVars("Tables","after-table")
+		level = level - 1
+		exitlevel = 1
 
 # handlePrefText()
 # process a block of body text and output a converted version of it
@@ -593,6 +702,7 @@ def handlePrefText():
 	if isLastPrefTextLine(linePtr): 
 		print subVars("PrefText","after-preftext")
 		level = level - 1
+		exitlevel = 1
 
 # handleUserText()
 # process a block of user text and output a converted version of it
@@ -615,6 +725,7 @@ def handleUserText():
 	if isLastUserTextLine(linePtr): 
 		print subVars("UserText","after-user-text")
 		level = level - 1
+		exitlevel = 1
 
 # handleUserPrefText()
 # process a block of body text and output a converted version of it
@@ -637,6 +748,7 @@ def handleUserPrefText():
 	if isLastPrefTextLine(linePtr): 
 		print subVars("UserPrefText","after-user-preftext")
 		level = level - 1
+		exitlevel = 1
 
 # addPreamble
 # create the 'header' for the output document
@@ -673,7 +785,7 @@ def handleObject(linenum):
 	elif getLineType(linenum) == 'preftext': handlePrefText()
 	elif getLineType(linenum) == 'userpreftext': handleUserPrefText()
 	elif getLineType(linenum) == 'command': handleHeading()
-	elif getLineType(linenum) == 'table': handleHeading()
+	elif getLineType(linenum) == 'table': handleTable()
 	else:
 		print
 		print "Error: unknown line type"
@@ -683,7 +795,7 @@ def handleObject(linenum):
 # process a list of objects
 # input: linenum - current line pointer
 # output: standard out
-# This is recursive
+# This is recursive. handleObject can call handleObjects.
 
 def handleObjects():
 	global lines, linePtr, level, exitlevel
@@ -694,7 +806,8 @@ def handleObjects():
 		linePtr = linePtr + 1
 	linePtr = linePtr - 1	# adjust for the unwanted post-increment
 				# after the last line
-	print "/ho<br>"
+	exitlevel = 0
+	dprint("/ho")
 
 ###########################################################################
 # Main Program Loop
