@@ -4,8 +4,8 @@
 #
 # Copyright 2005 Noel Henson All rights reserved
 #
-# $Revision: 1.1 $
-# $Date: 2005/10/19 19:37:32 $
+# $Revision: 1.2 $
+# $Date: 2005/10/19 20:11:22 $
 # $Author: noel $
 # $Source: /home/noel/active/otlsplit/RCS/otlsplit.py,v $
 # $Locker: noel $
@@ -29,7 +29,8 @@ from re import *
 # global variables
 
 debug = 0
-level = 0
+level = 1
+title = 0
 inputfile = ""
 
 ###########################################################################
@@ -53,9 +54,10 @@ def showUsage():
    print "Usage:"
    print "otlsplit.py [options] inputfile > outputfile"
    print "Options"
-   print "    -l level        The number of levels to split down to. The default is 1"
-   print "    -v              Print version (RCS) information."
-   print "    -H              Show the file syntax help."
+   print "    -l level  The number of levels to split down to. The default is 1"
+   print "    -t        Include a title line (the parerent heading) in split files"
+   print "    -v        Print version (RCS) information."
+   print "    -h        Show help."
    print "output is on STDOUT"
    print
 
@@ -67,8 +69,8 @@ def showUsage():
 def showVersion():
    print
    print "RCS"
-   print " $Revision: 1.1 $"
-   print " $Date: 2005/10/19 19:37:32 $"
+   print " $Revision: 1.2 $"
+   print " $Date: 2005/10/19 20:11:22 $"
    print " $Author: noel $"
    print
 
@@ -78,7 +80,7 @@ def showVersion():
 # output: possible console output for help, switch variables may be set
 
 def getArgs():
-  global debug, level, inputfile
+  global debug, level, inputfile, title
   if (len(sys.argv) == 1): 
     showUsage()
     sys.exit()()
@@ -92,14 +94,12 @@ def getArgs():
         elif (sys.argv[i] == "-l"):		# test for the level flag
 	  level = int(sys.argv[i+1])		# get the level
 	  i = i + 1				# increment the pointer
+  	elif   (sys.argv[i] == "-t"): title = 1	# test for title flag
         elif (sys.argv[i] == "--help"):
 	  showUsage()
 	  sys.exit()
         elif (sys.argv[i] == "-h"):
 	  showUsage()
-	  sys.exit()
-        elif (sys.argv[i] == "-H"):
-	  showSyntax()
 	  sys.exit()
         elif (sys.argv[i] == "-v"):
 	  showVersion()
@@ -142,7 +142,7 @@ def makeFileName(nameParts):
 
   filename = ""
   for i in range(level):
-	  filename = filename + lstrip(rstrip(nameParts[i])) + "-"
+	  filename = filename + lstrip(rstrip(convertSensitiveChars(nameParts[i]))) + "-"
   filename = filename[:-1]+ ".otl"
   return(filename)			
 
@@ -153,7 +153,7 @@ def makeFileName(nameParts):
 
 def processFile(file):
 
-  global debug, level
+  global debug, level, title
 
   nameparts = []
   for i in range(10):
@@ -171,12 +171,15 @@ def processFile(file):
 		if outOpen == 1: 
 			ofile.close()
 			outOpen = 0
-	  	nameparts[linelevel] = convertSensitiveChars(line)
+	  	nameparts[linelevel] = line
 		dprint(level,linelevel,line)
 	  else:
 		  if outOpen == 0: 
 			  ofile = open(makeFileName(nameparts),"w")
 			  outOpen = 1
+			  if title == 1:
+				  dprint("title:",title)
+				  ofile.write(nameparts[level-1])
 		  ofile.write(line[level:])
 	  line = file.readline()
 	
