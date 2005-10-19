@@ -4,11 +4,11 @@
 #
 # Copyright 2005 Noel Henson All rights reserved
 #
-# $Revision: 1.43 $
-# $Date: 2005/06/07 13:16:40 $
+# $Revision: 1.1 $
+# $Date: 2005/10/19 19:37:32 $
 # $Author: noel $
-# $Source: /home/noel/active/NoelOTL/RCS/otl2html.py,v $
-# $Locker:  $
+# $Source: /home/noel/active/otlsplit/RCS/otlsplit.py,v $
+# $Locker: noel $
 
 ###########################################################################
 # Basic function
@@ -33,7 +33,15 @@ level = 0
 inputfile = ""
 
 ###########################################################################
-# function definitions
+# function definitions# usage
+#
+# print debug statements
+# input: string
+# output: string printed to standard out
+
+def dprint(*vals):
+	global debug
+	if debug != 0: print vals
 
 # usage
 # print the simplest form of help
@@ -59,8 +67,8 @@ def showUsage():
 def showVersion():
    print
    print "RCS"
-   print " $Revision: 1.43 $"
-   print " $Date: 2005/06/07 13:16:40 $"
+   print " $Revision: 1.1 $"
+   print " $Date: 2005/10/19 19:37:32 $"
    print " $Author: noel $"
    print
 
@@ -81,8 +89,8 @@ def getArgs():
         elif (sys.argv[i] == "-?"):		# test for help flag
 	  showUsage()				# show the help
 	  sys.exit()				# exit
-        elif (sys.argv[i] == "-l"):		# test for the style sheet flag
-	  level = sys.argv[i+1]			# get the style sheet name
+        elif (sys.argv[i] == "-l"):		# test for the level flag
+	  level = int(sys.argv[i+1])		# get the level
 	  i = i + 1				# increment the pointer
         elif (sys.argv[i] == "--help"):
 	  showUsage()
@@ -121,7 +129,7 @@ def getLineLevel(linein):
 def convertSensitiveChars(line):
   line = lstrip(rstrip(line))
   line = sub('\W','_',line)
-  return(line)					# return the count + 1 (for level)
+  return(line)			
 
 # makeFileName
 # make a file name from the string array provided
@@ -134,24 +142,29 @@ def makeFileName(nameParts):
 
   filename = ""
   for i in range(level):
-	  filename = filename + lstrip(rstrip(nameParts[i]))
-  return(filename)				# return the count + 1 (for level)
+	  filename = filename + lstrip(rstrip(nameParts[i])) + "-"
+  filename = filename[:-1]+ ".otl"
+  return(filename)			
 
 # processFile
 # split an outline file
 # input: file - the filehandle of the file we are splitting
 # output: output files
 
-def processFile(file)
+def processFile(file):
 
   global debug, level
 
   nameparts = []
+  for i in range(10):
+	  nameparts.append("")
+
   outOpen = 0
 
   line = file.readline()			# read the outline title
   						# and discard it
   line = file.readline()			# read the first parent heading
+  dprint(level)
   while (line !=""):
 	  linelevel = getLineLevel(line)
 	  if (linelevel < level):
@@ -159,9 +172,10 @@ def processFile(file)
 			ofile.close()
 			outOpen = 0
 	  	nameparts[linelevel] = convertSensitiveChars(line)
+		dprint(level,linelevel,line)
 	  else:
 		  if outOpen == 0: 
-			  ofile = open(makeFileName(nameParts),"w")
+			  ofile = open(makeFileName(nameparts),"w")
 			  outOpen = 1
 		  ofile.write(line[level:])
 	  line = file.readline()
@@ -179,4 +193,3 @@ def main():
   file.close()
 
 main()
-    
