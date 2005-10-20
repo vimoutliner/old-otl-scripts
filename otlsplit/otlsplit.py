@@ -4,8 +4,8 @@
 #
 # Copyright 2005 Noel Henson All rights reserved
 #
-# $Revision: 1.3 $
-# $Date: 2005/10/19 20:31:50 $
+# $Revision: 1.4 $
+# $Date: 2005/10/20 13:11:19 $
 # $Author: noel $
 # $Source: /home/noel/active/otlsplit/RCS/otlsplit.py,v $
 # $Locker: noel $
@@ -71,8 +71,8 @@ def showUsage():
 def showVersion():
    print
    print "RCS"
-   print " $Revision: 1.3 $"
-   print " $Date: 2005/10/19 20:31:50 $"
+   print " $Revision: 1.4 $"
+   print " $Date: 2005/10/20 13:11:19 $"
    print " $Author: noel $"
    print
 
@@ -95,6 +95,9 @@ def getArgs():
 	  sys.exit()				# exit
         elif (sys.argv[i] == "-l"):		# test for the level flag
 	  level = int(sys.argv[i+1])		# get the level
+	  i = i + 1				# increment the pointer
+        elif (sys.argv[i] == "-D"):		# test for the subdir flag
+	  subdir = int(sys.argv[i+1])		# get the subdir
 	  i = i + 1				# increment the pointer
   	elif   (sys.argv[i] == "-t"): title = 1	# test for title flag
         elif (sys.argv[i] == "--help"):
