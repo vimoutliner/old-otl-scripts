@@ -4,8 +4,8 @@
 #
 # Copyright 2005 Noel Henson All rights reserved
 #
-# $Revision: 1.2 $
-# $Date: 2005/10/19 20:11:22 $
+# $Revision: 1.3 $
+# $Date: 2005/10/19 20:31:50 $
 # $Author: noel $
 # $Source: /home/noel/active/otlsplit/RCS/otlsplit.py,v $
 # $Locker: noel $
@@ -29,6 +29,7 @@ from re import *
 # global variables
 
 debug = 0
+subdir = ""
 level = 1
 title = 0
 inputfile = ""
@@ -55,6 +56,7 @@ def showUsage():
    print "otlsplit.py [options] inputfile > outputfile"
    print "Options"
    print "    -l level  The number of levels to split down to. The default is 1"
+   print "    -D dir    Specifiy a target directory for the output files"
    print "    -t        Include a title line (the parerent heading) in split files"
    print "    -v        Print version (RCS) information."
    print "    -h        Show help."
@@ -69,8 +71,8 @@ def showUsage():
 def showVersion():
    print
    print "RCS"
-   print " $Revision: 1.2 $"
-   print " $Date: 2005/10/19 20:11:22 $"
+   print " $Revision: 1.3 $"
+   print " $Date: 2005/10/19 20:31:50 $"
    print " $Author: noel $"
    print
 
@@ -80,7 +82,7 @@ def showVersion():
 # output: possible console output for help, switch variables may be set
 
 def getArgs():
-  global debug, level, inputfile, title
+  global debug, level, inputfile, title, subdir
   if (len(sys.argv) == 1): 
     showUsage()
     sys.exit()()
@@ -138,12 +140,13 @@ def convertSensitiveChars(line):
 
 def makeFileName(nameParts):
 
-  global debug, level
+  global debug, level, subdir
 
   filename = ""
   for i in range(level):
 	  filename = filename + lstrip(rstrip(convertSensitiveChars(nameParts[i]))) + "-"
   filename = filename[:-1]+ ".otl"
+  if subdir != "": filename = subdir + "/" + filename
   return(filename)			
 
 # processFile
