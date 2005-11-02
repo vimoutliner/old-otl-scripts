@@ -4,8 +4,8 @@
 #
 # Copyright 2005 Noel Henson All rights reserved
 #
-# $Revision: 1.6 $
-# $Date: 2005/10/20 13:13:21 $
+# $Revision: 1.7 $
+# $Date: 2005/11/02 21:42:10 $
 # $Author: noel $
 # $Source: /home/noel/active/otlsplit/RCS/otlsplit.py,v $
 # $Locker: noel $
@@ -53,7 +53,7 @@ def dprint(*vals):
 def showUsage():
    print
    print "Usage:"
-   print "otlsplit.py [options] inputfile > outputfile"
+   print "otlsplit.py [options] inputfile"
    print "Options"
    print "    -l level  The number of levels to split down to. The default is 1"
    print "    -D dir    Specifiy a target directory for the output files"
@@ -71,8 +71,8 @@ def showUsage():
 def showVersion():
    print
    print "RCS"
-   print " $Revision: 1.6 $"
-   print " $Date: 2005/10/20 13:13:21 $"
+   print " $Revision: 1.7 $"
+   print " $Date: 2005/11/02 21:42:10 $"
    print " $Author: noel $"
    print
 
