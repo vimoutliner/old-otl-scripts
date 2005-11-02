@@ -4,8 +4,8 @@
 #
 # Copyright 2005 Noel Henson All rights reserved
 #
-# $Revision: 1.5 $
-# $Date: 2005/10/20 13:12:39 $
+# $Revision: 1.6 $
+# $Date: 2005/10/20 13:13:21 $
 # $Author: noel $
 # $Source: /home/noel/active/otlsplit/RCS/otlsplit.py,v $
 # $Locker: noel $
@@ -71,8 +71,8 @@ def showUsage():
 def showVersion():
    print
    print "RCS"
-   print " $Revision: 1.5 $"
-   print " $Date: 2005/10/20 13:12:39 $"
+   print " $Revision: 1.6 $"
+   print " $Date: 2005/10/20 13:13:21 $"
    print " $Author: noel $"
    print
 
@@ -150,7 +150,7 @@ def makeFileName(nameParts):
 	  filename = filename + lstrip(rstrip(convertSensitiveChars(nameParts[i]))) + "-"
   filename = filename[:-1]+ ".otl"
   if subdir != "": filename = subdir + "/" + filename
-  return(filename)			
+  return(lower(filename))			
 
 # processFile
 # split an outline file
