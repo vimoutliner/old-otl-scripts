@@ -4,10 +4,10 @@
 #
 # Copyright 2005 Noel Henson All rights reserved
 #
-# $Revision: 1.6 $
-# $Date: 2005/10/20 13:13:21 $
+# $Revision: 1.1 $
+# $Date: 2005/11/02 22:59:44 $
 # $Author: noel $
-# $Source: /home/noel/active/otlsplit/RCS/otlsplit.py,v $
+# $Source: /home/noel/active/otlgrep/RCS/otlgrep.py,v $
 # $Locker: noel $
 
 ###########################################################################
@@ -107,8 +107,8 @@ def showUsage():
 def showVersion():
    print
    print "RCS"
-   print " $Revision: 1.6 $"
-   print " $Date: 2005/10/20 13:13:21 $"
+   print " $Revision: 1.1 $"
+   print " $Date: 2005/11/02 22:59:44 $"
    print " $Author: noel $"
    print
 
@@ -164,8 +164,10 @@ def processFile(file):
   global debug, pattern, ignorecase
 
   parents = []
+  parentprinted = []
   for i in range(10):
 	  parents.append("")
+	  parentprinted.append(0)
 
   matchlevel = 0
   line = file.readline()			# read the outline title
@@ -174,12 +176,16 @@ def processFile(file):
   while (line !=""):
 	  level = getLineLevel(line)
 	  parents[level] = line
+	  parentprinted[level] = 0
 	  if (ignorecase == 1): linesearch = search(pattern,lstrip(rstrip(line)),I)
 	  else: linesearch = search(pattern,lstrip(rstrip(line)))
 	  if (linesearch != None):
 		  matchlevel = level
-		  for i in range(level+1):	# print my ancestors and myself
-			  print parents[i][:-1]
+		  for i in range(level):	# print my ancestors
+			  if (parentprinted[i] == 0):
+				  print parents[i][:-1]
+				  parentprinted[i] = 1
+		  print parents[level][:-1]	# print myself
 		  line = file.readline()
 		  while (line != "") and (getLineLevel(line) > matchlevel):
 			  print line[:-1]
@@ -196,9 +202,12 @@ def processFile(file):
 def main():
   global inputfiles, debug
   getArgs()
-  for i in range(len(inputfiles)):
-	  file = open(inputfiles[i],"r")
-	  processFile(file)  
-	  file.close()
+  if (len(inputfiles) == 0):
+		  processFile(sys.stdin)  
+  else:
+	  for i in range(len(inputfiles)):
+		  file = open(inputfiles[i],"r")
+		  processFile(file)  
+		  file.close()
 
 main()
