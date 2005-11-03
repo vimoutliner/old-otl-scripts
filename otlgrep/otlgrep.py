@@ -4,8 +4,8 @@
 #
 # Copyright 2005 Noel Henson All rights reserved
 #
-# $Revision: 1.1 $
-# $Date: 2005/11/02 22:59:44 $
+# $Revision: 1.2 $
+# $Date: 2005/11/02 23:37:37 $
 # $Author: noel $
 # $Source: /home/noel/active/otlgrep/RCS/otlgrep.py,v $
 # $Locker: noel $
@@ -96,6 +96,8 @@ def showUsage():
    print "    -i            Ignore case"
    print "    --version     Print version (RCS) information."
    print "    --help        Show help."
+   print "[file...] is zero or more files to search. Wildcards are supported."
+   print "          if no file is specified, input is expected on stdin."
    print "output is on STDOUT"
    print
 
@@ -107,8 +109,8 @@ def showUsage():
 def showVersion():
    print
    print "RCS"
-   print " $Revision: 1.1 $"
-   print " $Date: 2005/11/02 22:59:44 $"
+   print " $Revision: 1.2 $"
+   print " $Date: 2005/11/02 23:37:37 $"
    print " $Author: noel $"
    print
 
