@@ -5,8 +5,8 @@
 #
 # Copyright 2006 Noel Henson All rights reserved
 #
-# $Revision: 1.1 $
-# $Date: 2006/08/04 14:04:44 $
+# $Revision: 1.2 $
+# $Date: 2006/08/04 15:55:55 $
 # $Author: noel $
 # $Source: /home/noel/active/otlreorder/RCS/otlreorder.py,v $
 # $Locker: noel $
@@ -105,8 +105,9 @@ def dprint(*vals):
 def showUsage():
    print
    print "Usage:"
-   print "otlreorder.py [options] pattern [pattern...] file"
+   print "otlreorder.py [options] pattern [pattern...] [file]"
    print "Options"
+   print "    -             use STDIN instead of file"
    print "    -i            Ignore case"
    print "    --version     Print version (RCS) information."
    print "    --help        Show help."
@@ -123,8 +124,8 @@ def showUsage():
 def showVersion():
    print
    print "RCS"
-   print " $Revision: 1.1 $"
-   print " $Date: 2006/08/04 14:04:44 $"
+   print " $Revision: 1.2 $"
+   print " $Date: 2006/08/04 15:55:55 $"
    print " $Author: noel $"
    print
 
@@ -135,6 +136,7 @@ def showVersion():
 
 def getArgs():
   global debug, pattern, inputfile, ignorecase
+  usestdin = 0
   if (len(sys.argv) == 1): 
     showUsage()
     sys.exit()()
@@ -142,6 +144,7 @@ def getArgs():
     for i in range(len(sys.argv)):
       if (i != 0):
         if   (sys.argv[i] == "-d"): debug = 1	# test for debug flag
+        elif (sys.argv[i] == "-"): usestdin = 1	# test for debug flag
         elif (sys.argv[i] == "-i"): ignorecase = 1	# test for debug flag
         elif (sys.argv[i] == "-?"):		# test for help flag
 	  showUsage()				# show the help
@@ -157,7 +160,8 @@ def getArgs():
 	  sys.exit()
 	else: 					# get the input file name
 	  patterns.append(sys.argv[i])
-    inputfile = patterns.pop()
+    if (usestdin == 0):
+	    inputfile = patterns.pop()
 
 # getLineLevel
 # get the level of the current line (count the number of tabs)
@@ -225,7 +229,8 @@ def main():
   global inputfile, patterns, debug
   getArgs()
   if (len(inputfile) == 0):
-		  processFile(sys.stdin)  
+	  for i in range(len(patterns)):
+		  processFile(sys.stdin,patterns[i])  
   else:
 	  for i in range(len(patterns)):
 		  file = open(inputfile,"r")
