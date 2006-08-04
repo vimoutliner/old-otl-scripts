@@ -5,8 +5,8 @@
 #
 # Copyright 2006 Noel Henson All rights reserved
 #
-# $Revision: 1.2 $
-# $Date: 2006/08/04 15:55:55 $
+# $Revision: 1.3 $
+# $Date: 2006/08/04 16:06:39 $
 # $Author: noel $
 # $Source: /home/noel/active/otlreorder/RCS/otlreorder.py,v $
 # $Locker: noel $
@@ -85,6 +85,7 @@ ignorecase = 0
 pattern = ""
 patterns = []
 inputfile = ""
+lines = []
 
 ###########################################################################
 # function definitions# usage
@@ -124,8 +125,8 @@ def showUsage():
 def showVersion():
    print
    print "RCS"
-   print " $Revision: 1.2 $"
-   print " $Date: 2006/08/04 15:55:55 $"
+   print " $Revision: 1.3 $"
+   print " $Date: 2006/08/04 16:06:39 $"
    print " $Author: noel $"
    print
 
@@ -179,9 +180,9 @@ def getLineLevel(linein):
 # input: file - the filehandle of the file we are splitting
 # output: output files
 
-def processFile(file,pattern):
+def processFile(pattern):
 
-  global debug, ignorecase
+  global lines, debug, ignorecase
 
   parents = []
   parentprinted = []
@@ -194,11 +195,12 @@ def processFile(file,pattern):
 	  parentprinted.append(0)
 
   matchlevel = 0
-  line = file.readline()			# read the outline title
-  						# and discard it
-  line = file.readline()			# read the first parent heading
+
   print pattern
-  while (line !=""):
+  #for i in range(1,len(lines)-1):
+  i = 1
+  while (i < len(lines)):
+  	  line = lines[i]
 	  level = getLineLevel(line)
 	  line = "\t"+line
 	  parents[level] = line
@@ -207,18 +209,25 @@ def processFile(file,pattern):
 	  else: linesearch = search(pattern,lstrip(rstrip(line)))
 	  if (linesearch != None):
 		  matchlevel = level
-		  for i in range(level):	# print my ancestors
-			  if (parentprinted[i] == 0):
-				  print parents[i][:-1]
-				  parentprinted[i] = 1
-#		  print parents[level][:-1]	# print myself
-		  line = file.readline()
-		  while (line != "") and (getLineLevel(line) > matchlevel):
-			  print line[:-1]
-			  line = file.readline()
-	  else:
-		  line = file.readline()
-
+		  # print my ancestors
+		  for j in range(level):	
+			  if (parentprinted[j] == 0):
+				  print parents[j][:-1]
+				  parentprinted[j] = 1
+		  # print my children
+		  i = i + 1
+		  line = lines[i]
+		  level = getLineLevel(line)
+		  while (i < len(lines)) and (getLineLevel(line) > matchlevel):
+			  if (i < len(lines)):
+				  line = lines[i]
+				  level = getLineLevel(line)
+				  if (level > matchlevel):
+					  print line[:-1]
+				  else: i = i - 1
+			  i = i + 1
+		  i = i - 1
+	  i = i + 1
 	
 # main
 # split an outline
@@ -226,15 +235,20 @@ def processFile(file,pattern):
 # output: output files
 
 def main():
-  global inputfile, patterns, debug
+  global lines, inputfile, patterns, debug
   getArgs()
   if (len(inputfile) == 0):
-	  for i in range(len(patterns)):
-		  processFile(sys.stdin,patterns[i])  
+	  line = sys.stdin.readline()
+	  while (line != ""):
+		  lines.append(line)
+		  line = sys.stdin.readline()
   else:
-	  for i in range(len(patterns)):
-		  file = open(inputfile,"r")
-		  processFile(file,patterns[i])  
-		  file.close()
-
+	  file = open(inputfile,"r")
+	  line = file.readline()
+	  while (line != ""):
+		  lines.append(line)
+		  line = file.readline()
+	  file.close()
+  for i in range(len(patterns)):
+	  processFile(patterns[i])  
 main()
