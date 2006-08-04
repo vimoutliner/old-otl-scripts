@@ -1,14 +1,15 @@
 #!/usr/bin/python
-# otlgrep.py
-# grep an outline for a regex and return the branch with all the leaves.
+# otlreorder.py
+# Grep and reorder an outline for a regex and return the branch 
+# with all the leaves.
 #
-# Copyright 2005 Noel Henson All rights reserved
+# Copyright 2006 Noel Henson All rights reserved
 #
-# $Revision: 1.4 $
-# $Date: 2006/02/19 18:10:46 $
+# $Revision: 1.1 $
+# $Date: 2006/08/04 14:04:44 $
 # $Author: noel $
-# $Source: /home/noel/active/otlgrep/RCS/otlgrep.py,v $
-# $Locker:  $
+# $Source: /home/noel/active/otlreorder/RCS/otlreorder.py,v $
+# $Locker: noel $
 
 ###########################################################################
 # Basic function
@@ -16,7 +17,7 @@
 #	This program searches an outline file for a branch that contains
 #	a line matching the regex argument. The parent headings (branches) 
 #	and the children (sub-branches and leaves) of the matching headings
-#	are returned.
+#	are returned with the outline focused on the search term.
 #
 #	Examples
 #	
@@ -40,20 +41,19 @@
 #			Primrose
 #			Joey
 #
-#	a grep for Sophia returns:
+#	a reorder for Sophia returns:
 #
-#	Indoor
-#		Cats
-#			Sophia
+#	Sophia
+#		Indoor
+#			Cats
 #
-#	a grep for Dogs returns:
+#	a reorder for Dogs returns:
 #
-#	Indoor
-#		Dogs
+#	Dogs
+#		Indoor
 #			Kirby
 #			Hoover
-#	Outdoor
-#		Dogs
+#		Outdoor
 #			Kirby
 #			Hoover
 #
@@ -83,7 +83,8 @@ from re import *
 debug = 0
 ignorecase = 0
 pattern = ""
-inputfiles = [] 
+patterns = []
+inputfile = ""
 
 ###########################################################################
 # function definitions# usage
@@ -104,7 +105,7 @@ def dprint(*vals):
 def showUsage():
    print
    print "Usage:"
-   print "otlgrep.py [options] pattern [file...] "
+   print "otlreorder.py [options] pattern [pattern...] file"
    print "Options"
    print "    -i            Ignore case"
    print "    --version     Print version (RCS) information."
@@ -122,8 +123,8 @@ def showUsage():
 def showVersion():
    print
    print "RCS"
-   print " $Revision: 1.4 $"
-   print " $Date: 2006/02/19 18:10:46 $"
+   print " $Revision: 1.1 $"
+   print " $Date: 2006/08/04 14:04:44 $"
    print " $Author: noel $"
    print
 
@@ -133,7 +134,7 @@ def showVersion():
 # output: possible console output for help, switch variables may be set
 
 def getArgs():
-  global debug, pattern, inputfiles, ignorecase
+  global debug, pattern, inputfile, ignorecase
   if (len(sys.argv) == 1): 
     showUsage()
     sys.exit()()
@@ -155,8 +156,8 @@ def getArgs():
 	  print "Error!  Unknown option.  Aborting"
 	  sys.exit()
 	else: 					# get the input file name
-	  if (pattern == ""): pattern = sys.argv[i]
-	  else: inputfiles.append(sys.argv[i])
+	  patterns.append(sys.argv[i])
+    inputfile = patterns.pop()
 
 # getLineLevel
 # get the level of the current line (count the number of tabs)
@@ -174,12 +175,16 @@ def getLineLevel(linein):
 # input: file - the filehandle of the file we are splitting
 # output: output files
 
-def processFile(file):
+def processFile(file,pattern):
 
-  global debug, pattern, ignorecase
+  global debug, ignorecase
 
   parents = []
   parentprinted = []
+
+  parents.append("pattern")
+  parentprinted.append(0)
+
   for i in range(10):
 	  parents.append("")
 	  parentprinted.append(0)
@@ -188,8 +193,10 @@ def processFile(file):
   line = file.readline()			# read the outline title
   						# and discard it
   line = file.readline()			# read the first parent heading
+  print pattern
   while (line !=""):
 	  level = getLineLevel(line)
+	  line = "\t"+line
 	  parents[level] = line
 	  parentprinted[level] = 0
 	  if (ignorecase == 1): linesearch = search(pattern,lstrip(rstrip(line)),I)
@@ -200,7 +207,7 @@ def processFile(file):
 			  if (parentprinted[i] == 0):
 				  print parents[i][:-1]
 				  parentprinted[i] = 1
-		  print parents[level][:-1]	# print myself
+#		  print parents[level][:-1]	# print myself
 		  line = file.readline()
 		  while (line != "") and (getLineLevel(line) > matchlevel):
 			  print line[:-1]
@@ -215,14 +222,14 @@ def processFile(file):
 # output: output files
 
 def main():
-  global inputfiles, debug
+  global inputfile, patterns, debug
   getArgs()
-  if (len(inputfiles) == 0):
+  if (len(inputfile) == 0):
 		  processFile(sys.stdin)  
   else:
-	  for i in range(len(inputfiles)):
-		  file = open(inputfiles[i],"r")
-		  processFile(file)  
+	  for i in range(len(patterns)):
+		  file = open(inputfile,"r")
+		  processFile(file,patterns[i])  
 		  file.close()
 
 main()
