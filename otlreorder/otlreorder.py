@@ -5,8 +5,8 @@
 #
 # Copyright 2006 Noel Henson All rights reserved
 #
-# $Revision: 1.3 $
-# $Date: 2006/08/04 16:06:39 $
+# $Revision: 1.4 $
+# $Date: 2006/08/04 19:17:17 $
 # $Author: noel $
 # $Source: /home/noel/active/otlreorder/RCS/otlreorder.py,v $
 # $Locker: noel $
@@ -125,8 +125,8 @@ def showUsage():
 def showVersion():
    print
    print "RCS"
-   print " $Revision: 1.3 $"
-   print " $Date: 2006/08/04 16:06:39 $"
+   print " $Revision: 1.4 $"
+   print " $Date: 2006/08/04 19:17:17 $"
    print " $Author: noel $"
    print
 
@@ -173,7 +173,7 @@ def getLineLevel(linein):
   strstart = lstrip(linein)			# find the start of text in line
   x = find(linein,strstart)			# find the text index in the line
   n = count(linein,"\t",0,x)			# count the tabs
-  return(n)					# return the count + 1 (for level)
+  return(n+1)					# return the count + 1 (for level)
 
 # processFile
 # split an outline file
@@ -196,8 +196,6 @@ def processFile(pattern):
 
   matchlevel = 0
 
-  print pattern
-  #for i in range(1,len(lines)-1):
   i = 1
   while (i < len(lines)):
   	  line = lines[i]
@@ -208,13 +206,16 @@ def processFile(pattern):
 	  if (ignorecase == 1): linesearch = search(pattern,lstrip(rstrip(line)),I)
 	  else: linesearch = search(pattern,lstrip(rstrip(line)))
 	  if (linesearch != None):
+		  if parents[0] != lstrip(line):
+			  parents[0] = lstrip(line)
+			  parentprinted[0] = 0
 		  matchlevel = level
 		  # print my ancestors
 		  for j in range(level):	
 			  if (parentprinted[j] == 0):
 				  print parents[j][:-1]
 				  parentprinted[j] = 1
-		  # print my children
+		  # print my decendents
 		  i = i + 1
 		  line = lines[i]
 		  level = getLineLevel(line)
