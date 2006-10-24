@@ -5,10 +5,10 @@
 # Copyright 2001 Noel Henson All rights reserved
 #
 # ALPHA VERSION!!!
-# $Revision: 1.44 $
-# $Date: 2006/02/10 14:32:53 $
+# $Revision: 1.45 $
+# $Date: 2006/02/20 16:21:24 $
 # $Author: noel $
-# $Source: /home/noel/active/NoelOTL/RCS/otl2html.py,v $
+# $Source: /home/noel/active/otl2html/RCS/otl2html.py,v $
 # $Locker: noel $
 
 ###########################################################################
@@ -132,6 +132,16 @@ def showSyntax():
    print "			[about.html About] [http://www.cnn.com CNN]"
    print "			or with an image:"
    print "			[http://www.ted.com [http://www.ted.com/logo.png]]"
+   print "			Links starting with a '+' will be opened in a new"
+   print "			window. Eg. [+about.html About]"
+   print
+   print "   Including external files"
+   print "	!filename!	Examples:"
+   print "			!menu.otl!"
+   print
+   print "   Including output from executing external programs"
+   print "	!!program args!!	Examples:"
+   print "			!!date +%Y%m%d!!"
    print
    print "   Note:"
    print "	When using -D, the top-level headings become divisions (<div>)"
@@ -150,8 +160,8 @@ def showSyntax():
 def showVersion():
    print
    print "RCS"
-   print " $Revision: 1.44 $"
-   print " $Date: 2006/02/10 14:32:53 $"
+   print " $Revision: 1.45 $"
+   print " $Date: 2006/02/20 16:21:24 $"
    print " $Author: noel $"
    print
 
@@ -419,6 +429,34 @@ def linkOrImage(line):
   line = replace(line,'<img src="_" alt="_">','[_]')
   return line
 
+# tabs
+# return a string with 'count' tabs
+# input: count
+# output: string of tabs
+
+def tabs(count):
+  out = ""
+  if (count == 0): return ""
+  for i in range (0,count-1):
+    out = out + "\t"
+  return out
+
+# includeFile
+# include the specified file, if it exists
+# input: line
+# output: line is replaced by the contents of the file
+
+def includeFile(line,lineLevel):
+  filename = sub('!(\S+?)!','\\1',lstrip(rstrip(line)))
+  incfile = open(filename,"r")
+  linein = incfile.readline()
+  while linein != "":
+    linein = sub('^',tabs(lineLevel),linein)
+    processLine(linein)
+    linein = incfile.readline()
+  incfile.close()
+  return
+
 # divName
 # create a name for a division
 # input: line
@@ -571,6 +609,8 @@ def processLine(linein):
 			  print "</table>"
 			  handleTtable(linein,lineLevel)
             	  else: print handleTableRow(linein,lineLevel),
+          elif (lineLevel == find(linein,"!") +1 ):
+		  includeFile(linein,lineLevel)
   	  else:
             if (inBodyText == 1):
 	    	    print"</p>"
@@ -908,8 +948,8 @@ def printHeader(linein):
   global styleSheet, inlineStyle
   print "<!DOCTYPE HTML PUBLIC \"-//W3C//DTD HTML 4.01 Transitional//EN\" \"http://www.w3.org/TR/html4/strict.dtd\">"
   print "<html><head><title>" + getTitleText(linein) + "</title>"
-  print"<!--  $Revision: 1.44 $ -->"
-  print"<!--  $Date: 2006/02/10 14:32:53 $ -->"
+  print"<!--  $Revision: 1.45 $ -->"
+  print"<!--  $Date: 2006/02/20 16:21:24 $ -->"
   print"<!--  $Author: noel $ -->"
   try:
 	file = open(styleSheet,"r") 
