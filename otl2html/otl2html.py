@@ -5,8 +5,8 @@
 # Copyright 2001 Noel Henson All rights reserved
 #
 # ALPHA VERSION!!!
-# $Revision: 1.45 $
-# $Date: 2006/02/20 16:21:24 $
+# $Revision: 1.46 $
+# $Date: 2006/10/24 17:02:45 $
 # $Author: noel $
 # $Source: /home/noel/active/otl2html/RCS/otl2html.py,v $
 # $Locker: noel $
@@ -32,6 +32,7 @@ import sys
 from string import *
 from re import *
 from time import *
+from os import system,popen
 
 ###########################################################################
 # global variables
@@ -160,8 +161,8 @@ def showSyntax():
 def showVersion():
    print
    print "RCS"
-   print " $Revision: 1.45 $"
-   print " $Date: 2006/02/20 16:21:24 $"
+   print " $Revision: 1.46 $"
+   print " $Date: 2006/10/24 17:02:45 $"
    print " $Author: noel $"
    print
 
@@ -443,7 +444,7 @@ def tabs(count):
 
 # includeFile
 # include the specified file, if it exists
-# input: line
+# input: line and lineLevel
 # output: line is replaced by the contents of the file
 
 def includeFile(line,lineLevel):
@@ -456,6 +457,21 @@ def includeFile(line,lineLevel):
     linein = incfile.readline()
   incfile.close()
   return
+
+# execProgram
+# execute the specified program
+# input: line
+# output: program specified is replaced by program output
+
+def execProgram(line):
+  program = sub('.*!!(.*)!!.*','\\1',lstrip(rstrip(line)))
+  child = popen(program)
+  out = child.read()
+  err = child.close()
+  out = sub('!!(.*)!!',out,line)
+  processLine(out)
+  if err: raise RuntimeError, '%s failed w/ exit code %d' % (program, err)
+  return 
 
 # divName
 # create a name for a division
@@ -609,6 +625,8 @@ def processLine(linein):
 			  print "</table>"
 			  handleTtable(linein,lineLevel)
             	  else: print handleTableRow(linein,lineLevel),
+          elif (find(linein,"!!") +1 ):
+		  execProgram(linein)
           elif (lineLevel == find(linein,"!") +1 ):
 		  includeFile(linein,lineLevel)
   	  else:
@@ -948,8 +966,8 @@ def printHeader(linein):
   global styleSheet, inlineStyle
   print "<!DOCTYPE HTML PUBLIC \"-//W3C//DTD HTML 4.01 Transitional//EN\" \"http://www.w3.org/TR/html4/strict.dtd\">"
   print "<html><head><title>" + getTitleText(linein) + "</title>"
-  print"<!--  $Revision: 1.45 $ -->"
-  print"<!--  $Date: 2006/02/20 16:21:24 $ -->"
+  print"<!--  $Revision: 1.46 $ -->"
+  print"<!--  $Date: 2006/10/24 17:02:45 $ -->"
   print"<!--  $Author: noel $ -->"
   try:
 	file = open(styleSheet,"r") 
