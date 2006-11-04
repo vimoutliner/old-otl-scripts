@@ -5,8 +5,8 @@
 # Copyright 2001 Noel Henson All rights reserved
 #
 # ALPHA VERSION!!!
-# $Revision: 1.46 $
-# $Date: 2006/10/24 17:02:45 $
+# $Revision: 1.47 $
+# $Date: 2006/10/24 20:19:42 $
 # $Author: noel $
 # $Source: /home/noel/active/otl2html/RCS/otl2html.py,v $
 # $Locker: noel $
@@ -138,11 +138,15 @@ def showSyntax():
    print
    print "   Including external files"
    print "	!filename!	Examples:"
-   print "			!menu.otl!"
+   print "			!file.txt!"
+   print
+   print "   Including external outlines (first line is parent)"
+   print "	!!filename!!	Examples:"
+   print "			!!menu.otl!!"
    print
    print "   Including output from executing external programs"
-   print "	!!program args!!	Examples:"
-   print "			!!date +%Y%m%d!!"
+   print "	!!!program args!!!	Examples:"
+   print "			!!!date +%Y%m%d!!!"
    print
    print "   Note:"
    print "	When using -D, the top-level headings become divisions (<div>)"
@@ -161,8 +165,8 @@ def showSyntax():
 def showVersion():
    print
    print "RCS"
-   print " $Revision: 1.46 $"
-   print " $Date: 2006/10/24 17:02:45 $"
+   print " $Revision: 1.47 $"
+   print " $Date: 2006/10/24 20:19:42 $"
    print " $Author: noel $"
    print
 
@@ -458,17 +462,36 @@ def includeFile(line,lineLevel):
   incfile.close()
   return
 
+# includeOutline
+# include the specified file, if it exists
+# input: line and lineLevel
+# output: line is replaced by the contents of the file
+
+def includeOutline(line,lineLevel):
+  filename = sub('!!(\S+?)!!','\\1',lstrip(rstrip(line)))
+  incfile = open(filename,"r")
+  linein = incfile.readline()
+  linein = sub('^',tabs(lineLevel),linein)
+  processLine(linein)
+  linein = incfile.readline()
+  while linein != "":
+    linein = sub('^',tabs(lineLevel+1),linein)
+    processLine(linein)
+    linein = incfile.readline()
+  incfile.close()
+  return
+
 # execProgram
 # execute the specified program
 # input: line
 # output: program specified is replaced by program output
 
 def execProgram(line):
-  program = sub('.*!!(.*)!!.*','\\1',lstrip(rstrip(line)))
+  program = sub('.*!!!(.*)!!!.*','\\1',lstrip(rstrip(line)))
   child = popen(program)
   out = child.read()
   err = child.close()
-  out = sub('!!(.*)!!',out,line)
+  out = sub('!!!(.*)!!!',out,line)
   processLine(out)
   if err: raise RuntimeError, '%s failed w/ exit code %d' % (program, err)
   return 
@@ -625,8 +648,10 @@ def processLine(linein):
 			  print "</table>"
 			  handleTtable(linein,lineLevel)
             	  else: print handleTableRow(linein,lineLevel),
-          elif (find(linein,"!!") +1 ):
+          elif (find(linein,"!!!") +1 ):
 		  execProgram(linein)
+          elif (lineLevel == find(linein,"!!") +1 ):
+		  includeOutline(linein,lineLevel)
           elif (lineLevel == find(linein,"!") +1 ):
 		  includeFile(linein,lineLevel)
   	  else:
@@ -966,8 +991,8 @@ def printHeader(linein):
   global styleSheet, inlineStyle
   print "<!DOCTYPE HTML PUBLIC \"-//W3C//DTD HTML 4.01 Transitional//EN\" \"http://www.w3.org/TR/html4/strict.dtd\">"
   print "<html><head><title>" + getTitleText(linein) + "</title>"
-  print"<!--  $Revision: 1.46 $ -->"
-  print"<!--  $Date: 2006/10/24 17:02:45 $ -->"
+  print"<!--  $Revision: 1.47 $ -->"
+  print"<!--  $Date: 2006/10/24 20:19:42 $ -->"
   print"<!--  $Author: noel $ -->"
   try:
 	file = open(styleSheet,"r") 
