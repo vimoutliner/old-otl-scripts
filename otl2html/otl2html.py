@@ -5,8 +5,8 @@
 # Copyright 2001 Noel Henson All rights reserved
 #
 # ALPHA VERSION!!!
-# $Revision: 1.47 $
-# $Date: 2006/10/24 20:19:42 $
+# $Revision: 1.48 $
+# $Date: 2006/11/04 23:20:10 $
 # $Author: noel $
 # $Source: /home/noel/active/otl2html/RCS/otl2html.py,v $
 # $Locker: noel $
@@ -165,8 +165,8 @@ def showSyntax():
 def showVersion():
    print
    print "RCS"
-   print " $Revision: 1.47 $"
-   print " $Date: 2006/10/24 20:19:42 $"
+   print " $Revision: 1.48 $"
+   print " $Date: 2006/11/04 23:20:10 $"
    print " $Author: noel $"
    print
 
@@ -625,8 +625,9 @@ def processLine(linein):
 
       else: print # same depth
       if (div == 1 and lineLevel == 1): 
-	  print divName(linein)
-	  if (silentdiv == 0): print "<ol>"
+	  if (lineLevel != find(linein,"!") +1):
+		  print divName(linein)
+		  if (silentdiv == 0): print "<ol>"
 
       if (slides == 0):
           if (lineLevel == find(linein," ") +1 ) or \
@@ -648,7 +649,7 @@ def processLine(linein):
 			  print "</table>"
 			  handleTtable(linein,lineLevel)
             	  else: print handleTableRow(linein,lineLevel),
-          elif (find(linein,"!!!") +1 ):
+          elif (lineLevel == find(linein,"!!!") +1 ):
 		  execProgram(linein)
           elif (lineLevel == find(linein,"!!") +1 ):
 		  includeOutline(linein,lineLevel)
@@ -991,8 +992,8 @@ def printHeader(linein):
   global styleSheet, inlineStyle
   print "<!DOCTYPE HTML PUBLIC \"-//W3C//DTD HTML 4.01 Transitional//EN\" \"http://www.w3.org/TR/html4/strict.dtd\">"
   print "<html><head><title>" + getTitleText(linein) + "</title>"
-  print"<!--  $Revision: 1.47 $ -->"
-  print"<!--  $Date: 2006/10/24 20:19:42 $ -->"
+  print"<!--  $Revision: 1.48 $ -->"
+  print"<!--  $Date: 2006/11/04 23:20:10 $ -->"
   print"<!--  $Author: noel $ -->"
   try:
 	file = open(styleSheet,"r") 
