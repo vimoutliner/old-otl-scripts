@@ -5,8 +5,8 @@
 # Copyright 2001 Noel Henson All rights reserved
 #
 # ALPHA VERSION!!!
-# $Revision: 1.48 $
-# $Date: 2006/11/04 23:20:10 $
+# $Revision: 1.49 $
+# $Date: 2006/11/05 21:25:49 $
 # $Author: noel $
 # $Source: /home/noel/active/otl2html/RCS/otl2html.py,v $
 # $Locker: noel $
@@ -107,6 +107,8 @@ def showSyntax():
    print "			This will cause an item to be right-justified."
    print "				|  whatever |"
    print "			This will cause an item to be centered."
+   print "				|  whatever  |"
+   print "			This will cause an item to be default aligned."
    print "				| whatever |"
    print
    print "   Character Styles"
@@ -165,8 +167,8 @@ def showSyntax():
 def showVersion():
    print
    print "RCS"
-   print " $Revision: 1.48 $"
-   print " $Date: 2006/11/04 23:20:10 $"
+   print " $Revision: 1.49 $"
+   print " $Date: 2006/11/05 21:25:49 $"
    print " $Author: noel $"
    print
 
@@ -992,8 +994,8 @@ def printHeader(linein):
   global styleSheet, inlineStyle
   print "<!DOCTYPE HTML PUBLIC \"-//W3C//DTD HTML 4.01 Transitional//EN\" \"http://www.w3.org/TR/html4/strict.dtd\">"
   print "<html><head><title>" + getTitleText(linein) + "</title>"
-  print"<!--  $Revision: 1.48 $ -->"
-  print"<!--  $Date: 2006/11/04 23:20:10 $ -->"
+  print"<!--  $Revision: 1.49 $ -->"
+  print"<!--  $Date: 2006/11/05 21:25:49 $ -->"
   print"<!--  $Author: noel $ -->"
   try:
 	file = open(styleSheet,"r") 
