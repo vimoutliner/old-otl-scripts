@@ -5,8 +5,8 @@
 #
 # Copyright 2006 Noel Henson All rights reserved
 #
-# $Revision: 1.4 $
-# $Date: 2006/08/04 19:17:17 $
+# $Revision: 1.5 $
+# $Date: 2006/08/05 15:47:19 $
 # $Author: noel $
 # $Source: /home/noel/active/otlreorder/RCS/otlreorder.py,v $
 # $Locker: noel $
@@ -84,6 +84,7 @@ debug = 0
 ignorecase = 0
 pattern = ""
 patterns = []
+completePatterns = []
 inputfile = ""
 lines = []
 
@@ -125,8 +126,8 @@ def showUsage():
 def showVersion():
    print
    print "RCS"
-   print " $Revision: 1.4 $"
-   print " $Date: 2006/08/04 19:17:17 $"
+   print " $Revision: 1.5 $"
+   print " $Date: 2006/08/05 15:47:19 $"
    print " $Author: noel $"
    print
 
@@ -203,9 +204,10 @@ def processFile(pattern):
 	  line = "\t"+line
 	  parents[level] = line
 	  parentprinted[level] = 0
-	  if (ignorecase == 1): linesearch = search(pattern,lstrip(rstrip(line)),I)
-	  else: linesearch = search(pattern,lstrip(rstrip(line)))
-	  if (linesearch != None):
+#	  if (ignorecase == 1): linesearch = search(pattern,lstrip(rstrip(line)),I)
+#	  else: linesearch = search(pattern,lstrip(rstrip(line)))
+#	  if (linesearch != None):
+	  if (pattern == lstrip(rstrip(line))):
 		  if parents[0] != lstrip(line):
 			  parents[0] = lstrip(line)
 			  parentprinted[0] = 0
@@ -230,13 +232,49 @@ def processFile(pattern):
 		  i = i - 1
 	  i = i + 1
 	
+# getCompletePattern
+# search lines for pattern matches to generate a specific list of patterns to search for
+# input: pattern and lines
+# output: patterns updated with specific, complete patterns
+
+def getCompletePattern(pattern):
+  global completePatterns, lines, debug, ignorecase
+  for i in range(len(lines)):
+  	  line = lines[i]
+	  if (ignorecase == 1): linepattern = search(pattern,lstrip(rstrip(line)),I)
+	  else: linepattern = search(pattern,lstrip(rstrip(line)))
+	  if (linepattern != None):
+		  completePatterns.append(lstrip(rstrip(line)))
+		  if debug != 0: print lstrip(rstrip(line))
+
+# getCompletePatterns
+# search lines for pattern matches to generate a specific list of patterns to search for
+# input: pattern and lines
+# output: patterns updated with specific, complete patterns
+
+def getCompletePatterns():
+  global completePatterns, patterns, debug
+  for i in range(len(patterns)):
+	  getCompletePattern(patterns[i])
+  if (debug!=0):
+	  print "patterns:"
+	  for i in range(len(patterns)): print patterns[i]
+  # perform the equivalent of the sort | uniq
+  completePatterns.sort()
+  unionPatterns = set(completePatterns)
+  unionPatterns.union(unionPatterns)
+  completePatterns = list(unionPatterns)
+  if (debug!=0):
+	  print "complete patterns:"
+	  for i in range(len(completePatterns)): print completePatterns[i]
+
 # main
 # split an outline
 # input: args and input file
 # output: output files
 
 def main():
-  global lines, inputfile, patterns, debug
+  global lines, inputfile, completePatterns, patterns, debug
   getArgs()
   if (len(inputfile) == 0):
 	  line = sys.stdin.readline()
@@ -250,6 +288,7 @@ def main():
 		  lines.append(line)
 		  line = file.readline()
 	  file.close()
-  for i in range(len(patterns)):
-	  processFile(patterns[i])  
+  getCompletePatterns()
+  for i in range(len(completePatterns)):
+	  processFile(completePatterns[i])  
 main()
