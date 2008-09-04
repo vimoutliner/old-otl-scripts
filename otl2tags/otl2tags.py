@@ -7,11 +7,11 @@
 # Copyright (c) 2005 Noel Henson All rights reserved
 #
 # ALPHA VERSION!!!
-# $Revision: 1.2 $
-# $Date: 2005/10/18 10:32:28 $
+# $Revision: 1.3 $
+# $Date: 2005/10/18 16:01:15 $
 # $Author: noel $
 # $Source: /home/noel/active/otl2tags/RCS/otl2tags.py,v $
-# $Locker: noel $
+# $Locker:  $
 
 ###########################################################################
 # Basic function
@@ -23,6 +23,9 @@
 # Change Log
 #
 #	$Log: otl2tags.py,v $
+#	Revision 1.3  2005/10/18 16:01:15  noel
+#	First completely working version.
+#
 #	Revision 1.2  2005/10/18 10:32:28  noel
 #	Works except for leaving levels and some other minutia.
 #
@@ -39,16 +42,18 @@ from ConfigParser import *
 from re import *
 
 ###########################################################################
-# global v
+# global variables
 
 level = 0
 exitlevel = 0
 inputFile = ""
 lines = []
+parents = []
 config = ConfigParser()
 debug = 0
 linePtr = 0
 v = {}				# outline variables
+text = ""
 
 ###########################################################################
 # function definitions
@@ -87,8 +92,8 @@ def showUsage():
 def showVersion():
 	 print
 	 print "RCS"
-	 print " $Revision: 1.2 $"
-	 print " $Date: 2005/10/18 10:32:28 $"
+	 print " $Revision: 1.3 $"
+	 print " $Date: 2005/10/18 16:01:15 $"
 	 print " $Author: noel $"
 	 print " $Source: /home/noel/active/otl2tags/RCS/otl2tags.py,v $"
 	 print
@@ -170,6 +175,8 @@ def readFile(inputfile):
 def initVariables():
 	global v
 	v["%n"] = "0"	# line number
+	v["%N"] = "0"	# line number for first line of text block
+	v["%p"] = "0"	# parent line number
 	v["%l"] = "0"	# outline level (depth)
 	v["%%"] = ""	# object text
 	v["%t"] = ""	# document title (the first line)
@@ -180,7 +187,7 @@ def initVariables():
 # output: returns a string with a stripped 'lf'
 
 def lfStrip(line):
-	return rstrip(line[:len(line)-1])
+	return rstrip(line,'\n')
 
 # colonStrip(line)
 # strip a leading ':', if it exists
@@ -188,7 +195,7 @@ def lfStrip(line):
 # output: returns a string with a stripped ':'
 
 def colonStrip(line):
-	if (line[0] == ":"): return lstrip(line[1:])
+	if (line[0] == ":"): return lstrip(line,': ')
         else: return line
 
 # semicolonStrip(line)
@@ -197,7 +204,7 @@ def colonStrip(line):
 # output: returns a string with a stripped ';'
 
 def semicolonStrip(line):
-	if (line[0] == ";"): return lstrip(line[1:])
+	if (line[0] == ";"): return lstrip(line,'; ')
         else: return line
 
 # dashStrip(line)
@@ -215,16 +222,16 @@ def dashStrip(line):
 # output: returns a string with a stripped '>'
 
 def greaterStrip(line):
-	if (line[0] == ">"): return lstrip(line[1:])
+	if (line[0] == ">"): return lstrip(line,'> ')
         else: return line
 
 # lessStrip(line)
-# strip a leading '>', if it exists
+# strip a leading '<', if it exists
 # input: line
-# output: returns a string with a stripped '>'
+# output: returns a string with a stripped '<'
 
 def lessStrip(line):
-	if (line[0] == "<"): return lstrip(line[1:])
+	if (line[0] == "<"): return lstrip(line,'< ')
         else: return line
 
 # pipeStrip(line)
@@ -233,7 +240,7 @@ def lessStrip(line):
 # output: returns a string with a stripped '|'
 
 def pipeStrip(line):
-	if (line[0] == "|"): return lstrip(line[1:])
+	if (line[0] == "|"): return lstrip('|')
         else: return line
 
 # plusStrip(line)
@@ -368,11 +375,15 @@ def isFirstChild(linenum):
 
 def isLastChild(linenum,mylevel):
 	global lines
-	if (linenum < len(lines)):
-		next = nextHeadingAtLevel(linenum,mylevel)
-		dprint("nx:",next,"lpl:",indentLevel(linenum),"nxl:",indentLevel(next))
-		if (mylevel > indentLevel(next)): return 1
-		else: return 0
+#	if (linenum < len(lines)):
+#		next = nextHeadingAtLevel(linenum,mylevel)
+#		dprint("nx:",next,"lpl:",indentLevel(linenum),"nxl:",indentLevel(next))
+#		if (mylevel > indentLevel(next)): return 1
+#		else: return 0
+#	else: return 0
+	if linenum == len(lines)-1: return 0
+	elif mylevel>=indentLevel(linenum+1): 
+		return 1
 	else: return 0
 
 # isFirstTableLine
@@ -498,12 +509,14 @@ def isLastUserTextLine(linenum):
 # output: string - the substitution expression with variables inserted
 
 def subVars(section,type):
-	global config, v, linePtr, level, lines
+	global config, v, linePtr, level, lines, parents
 
 	varlist = v.keys()
 	pattern = config.get(section,type)
 	v["%n"] = str(linePtr)
 	v["%l"] = str(level)
+	if len(parents) > 0:
+		v["%p"] = str(parents[len(parents)-1])
 	# v["%%"] = lstrip(rstrip(lines[linePtr])) - this should be done in handling
 
 	for var in varlist:
@@ -521,7 +534,7 @@ def subVars(section,type):
 
 def handleHeading():
 
-	global linePtr, lines, level, v, exitlevel
+	global linePtr, lines, level, v, exitlevel, parents
 
 	v["%%"] = lstrip(rstrip(lines[linePtr]))
 	if getHeadingType(linePtr) == 'normal':
@@ -530,7 +543,7 @@ def handleHeading():
 			print subVars("Headings","before-headings")
 		print subVars("Headings","heading")
 		if isParent(linePtr):
-#			linePtr = nextHeading(linePtr) 
+			parents.append(linePtr)
 			linePtr = linePtr + 1
 			dprint("ho:",linePtr)
 			handleObjects()
@@ -541,6 +554,7 @@ def handleHeading():
 			level = level - 1
 			exitlevel = 1
 			dprint("lc")
+			parents.pop()
 	elif getHeadingType(linePtr) == 'bulleted':
 		v["%%"] = dashStrip(v["%%"])
 		if isFirstChild(linePtr): 
@@ -548,12 +562,14 @@ def handleHeading():
 			print subVars("Headings","before-bulleted-headings")
 		print subVars("Headings","bulleted-heading")
 		if isParent(linePtr):
+			parents.append(linePtr)
 			linePtr = linePtr + 1
 			handleObjects()
 		if isLastChild(linePtr,level): 
 			print subVars("Headings","after-bulleted-headings")
 			level = level - 1
 			exitlevel = 1
+			parents.pop()
 	elif getHeadingType(linePtr) == 'numbered':
 		v["%%"] = plusStrip(v["%%"])
 		if isFirstChild(linePtr): 
@@ -561,12 +577,14 @@ def handleHeading():
 			print subVars("Headings","before-numbered-headings")
 		print subVars("Headings","numbered-heading")
 		if isParent(linePtr):
+			parents.append(linePtr)
 			linePtr = linePtr + 1
 			handleObjects()
 		if isLastChild(linePtr,level): 
 			print subVars("Headings","after-numbered-headings")
 			level = level - 1
 			exitlevel = 1
+			parents.pop()
 	else: 
 		print
 		print "Error: unknown heading type"
@@ -579,19 +597,22 @@ def handleHeading():
 
 def handleText():
 
-	global linePtr, lines, level, v
+	global linePtr, lines, level, v, text
 
-	v["%%"] = lfStrip(colonStrip(lstrip(rstrip(lines[linePtr]))))
+	v["%%"] = lfStrip(colonStrip(lstrip(rstrip(lines[linePtr],'\n'))))
 	
 	if isFirstTextLine(linePtr):
 		level = level + 1
-		print subVars("Text","before-text")
+		text = subVars("Text","before-text")
+		v["%N"] = str(linePtr)
 	if lstrip(rstrip(lines[linePtr])) == ":":
-		print subVars("Text","paragraph-sep")
+		text += subVars("Text","paragraph-sep")
 	else:
-		print subVars("Text","text")
+		text += subVars("Text","text")
 	if isLastTextLine(linePtr): 
-		print subVars("Text","after-text")
+		text += subVars("Text","after-text")
+		print text
+		text = ""
 		level = level - 1
 		exitlevel = 1
 
@@ -688,19 +709,21 @@ def handleTable():
 
 def handlePrefText():
 
-	global linePtr, lines, level, v
+	global linePtr, lines, level, v, text
 
 	v["%%"] = lfStrip(semicolonStrip(lstrip(rstrip(lines[linePtr]))))
 	
 	if isFirstPrefTextLine(linePtr):
 		level = level + 1
-		print subVars("PrefText","before-preftext")
+		text = subVars("PrefText","before-preftext")
 	if lstrip(rstrip(lines[linePtr])) == ";":
-		print subVars("PrefText","pref-paragraph-sep")
+		text += subVars("PrefText","pref-paragraph-sep")
 	else:
-		print subVars("PrefText","preftext")
+		text += subVars("PrefText","preftext")
 	if isLastPrefTextLine(linePtr): 
-		print subVars("PrefText","after-preftext")
+		text += subVars("PrefText","after-preftext")
+		print text
+		text = ""
 		level = level - 1
 		exitlevel = 1
 
@@ -711,19 +734,20 @@ def handlePrefText():
 
 def handleUserText():
 
-	global linePtr, lines, level, v
+	global linePtr, lines, level, v, text
 
-	v["%%"] = lfStrip(greaterStrip(lstrip(rstrip(lines[linePtr]))))
+	v["%%"] = lfStrip(greaterStrip(lstrip(rstrip(lines[linePtr],'\n'))))
 	
 	if isFirstUserTextLine(linePtr):
 		level = level + 1
-		print subVars("UserText","before-user-text")
+		text = subVars("UserText","before-user-text")
 	if lstrip(rstrip(lines[linePtr])) == ">":
-		print subVars("UserText","user-paragraph-sep")
+		text += subVars("UserText","user-paragraph-sep")
 	else:
-		print subVars("UserText","user-text")
+		text += subVars("UserText","user-text")
 	if isLastUserTextLine(linePtr): 
-		print subVars("UserText","after-user-text")
+		text += subVars("UserText","after-user-text")
+		print text
 		level = level - 1
 		exitlevel = 1
 
@@ -734,19 +758,20 @@ def handleUserText():
 
 def handleUserPrefText():
 
-	global linePtr, lines, level, v
+	global linePtr, lines, level, v, text
 
 	v["%%"] = lfStrip(lessStrip(lstrip(rstrip(lines[linePtr]))))
 	
 	if isFirstPrefTextLine(linePtr):
 		level = level + 1
-		print subVars("UserPrefText","before-user-preftext")
+		text = subVars("UserPrefText","before-user-preftext")
 	if lstrip(rstrip(lines[linePtr])) == "<":
-		print subVars("UserPrefText","user-pref-paragraph-sep")
+		text += subVars("UserPrefText","user-pref-paragraph-sep")
 	else:
-		print subVars("UserPrefText","user-preftext")
+		text += subVars("UserPrefText","user-preftext")
 	if isLastPrefTextLine(linePtr): 
-		print subVars("UserPrefText","after-user-preftext")
+		text += subVars("UserPrefText","after-user-preftext")
+		print text
 		level = level - 1
 		exitlevel = 1
 
