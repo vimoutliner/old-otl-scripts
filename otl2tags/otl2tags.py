@@ -7,8 +7,8 @@
 # Copyright (c) 2005 Noel Henson All rights reserved
 #
 # ALPHA VERSION!!!
-# $Revision: 1.4 $
-# $Date: 2008/09/04 20:08:28 $
+# $Revision: 1.5 $
+# $Date: 2008/09/05 18:50:48 $
 # $Author: noel $
 # $Source: /home/noel/active/otl2tags/RCS/otl2tags.py,v $
 # $Locker: noel $
@@ -23,6 +23,10 @@
 # Change Log
 #
 #	$Log: otl2tags.py,v $
+#	Revision 1.5  2008/09/05 18:50:48  noel
+#	Fixed recursion.
+#	Modified the config file to support nexted and unnested nodes.
+#
 #	Revision 1.4  2008/09/04 20:08:28  noel
 #	Minor bug fixes and added two more variables for replacement.
 #
@@ -96,8 +100,8 @@ def showUsage():
 def showVersion():
 	 print
 	 print "RCS"
-	 print " $Revision: 1.4 $"
-	 print " $Date: 2008/09/04 20:08:28 $"
+	 print " $Revision: 1.5 $"
+	 print " $Date: 2008/09/05 18:50:48 $"
 	 print " $Author: noel $"
 	 print " $Source: /home/noel/active/otl2tags/RCS/otl2tags.py,v $"
 	 print
@@ -861,12 +865,13 @@ def handleObjects():
 # Main Program Loop
 
 def main():
-	global inputfile, lines, debug, v, linePtr
+	global inputfile, lines, debug, v, linePtr, parents
 	getArgs()
 	if (debug !=0): printConfig()
 	initVariables()
 	readFile(inputfile)
 	v["%t"] = lfStrip(lines[0])		# get the title
+	parents.append(linePtr)
 	linePtr = 1
 
 	addPreamble()
