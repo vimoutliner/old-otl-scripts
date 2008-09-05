@@ -7,11 +7,11 @@
 # Copyright (c) 2005 Noel Henson All rights reserved
 #
 # ALPHA VERSION!!!
-# $Revision: 1.3 $
-# $Date: 2005/10/18 16:01:15 $
+# $Revision: 1.4 $
+# $Date: 2008/09/04 20:08:28 $
 # $Author: noel $
 # $Source: /home/noel/active/otl2tags/RCS/otl2tags.py,v $
-# $Locker:  $
+# $Locker: noel $
 
 ###########################################################################
 # Basic function
@@ -23,6 +23,9 @@
 # Change Log
 #
 #	$Log: otl2tags.py,v $
+#	Revision 1.4  2008/09/04 20:08:28  noel
+#	Minor bug fixes and added two more variables for replacement.
+#
 #	Revision 1.3  2005/10/18 16:01:15  noel
 #	First completely working version.
 #
@@ -45,6 +48,7 @@ from re import *
 # global variables
 
 level = 0
+childnumber = 1
 exitlevel = 0
 inputFile = ""
 lines = []
@@ -92,8 +96,8 @@ def showUsage():
 def showVersion():
 	 print
 	 print "RCS"
-	 print " $Revision: 1.3 $"
-	 print " $Date: 2005/10/18 16:01:15 $"
+	 print " $Revision: 1.4 $"
+	 print " $Date: 2008/09/04 20:08:28 $"
 	 print " $Author: noel $"
 	 print " $Source: /home/noel/active/otl2tags/RCS/otl2tags.py,v $"
 	 print
@@ -177,6 +181,7 @@ def initVariables():
 	v["%n"] = "0"	# line number
 	v["%N"] = "0"	# line number for first line of text block
 	v["%p"] = "0"	# parent line number
+	v["%c"] = "0"	# my child number
 	v["%l"] = "0"	# outline level (depth)
 	v["%%"] = ""	# object text
 	v["%t"] = ""	# document title (the first line)
@@ -213,7 +218,7 @@ def semicolonStrip(line):
 # output: returns a string with a stripped '-'
 
 def dashStrip(line):
-	if (line[0] == "-"): return lstrip(line[1:])
+	if (line[0] == "-"): return lstrip(line,'-')
         else: return line
 
 # greaterStrip(line)
@@ -249,7 +254,7 @@ def pipeStrip(line):
 # output: returns a string with a stripped '+'
 
 def plusStrip(line):
-	if (line[0] == "+"): return lstrip(line[1:])
+	if (line[0] == "+"): return lstrip(line,'+')
         else: return line
 
 # getLevel
@@ -374,14 +379,8 @@ def isFirstChild(linenum):
 # output: returns 1 if the last child, 0 if not
 
 def isLastChild(linenum,mylevel):
-	global lines
-#	if (linenum < len(lines)):
-#		next = nextHeadingAtLevel(linenum,mylevel)
-#		dprint("nx:",next,"lpl:",indentLevel(linenum),"nxl:",indentLevel(next))
-#		if (mylevel > indentLevel(next)): return 1
-#		else: return 0
-#	else: return 0
-	if linenum == len(lines)-1: return 0
+	global lines,parents
+	if linenum == len(lines)-1: return 1
 	elif mylevel>=indentLevel(linenum+1): 
 		return 1
 	else: return 0
@@ -509,12 +508,13 @@ def isLastUserTextLine(linenum):
 # output: string - the substitution expression with variables inserted
 
 def subVars(section,type):
-	global config, v, linePtr, level, lines, parents
+	global config, v, linePtr, level, lines, parents, childnumber
 
 	varlist = v.keys()
 	pattern = config.get(section,type)
 	v["%n"] = str(linePtr)
 	v["%l"] = str(level)
+	v["%c"] = str(childnumber)
 	if len(parents) > 0:
 		v["%p"] = str(parents[len(parents)-1])
 	# v["%%"] = lstrip(rstrip(lines[linePtr])) - this should be done in handling
@@ -534,57 +534,80 @@ def subVars(section,type):
 
 def handleHeading():
 
-	global linePtr, lines, level, v, exitlevel, parents
+	global linePtr, lines, level, v, exitlevel, parents, childnumber
 
 	v["%%"] = lstrip(rstrip(lines[linePtr]))
 	if getHeadingType(linePtr) == 'normal':
+		childnumber = childnumber + 1
 		if isFirstChild(linePtr): 
+			childnumber = 1
 			level = level + 1
 			print subVars("Headings","before-headings")
-		print subVars("Headings","heading")
 		if isParent(linePtr):
+			print subVars("Headings","branch-heading")
 			parents.append(linePtr)
 			linePtr = linePtr + 1
 			dprint("ho:",linePtr)
 			handleObjects()
 			dprint("xl:",level)
+		else:
+			print subVars("Headings","leaf-heading")
 		dprint("lp:",linePtr,"ml:",level)
 		if isLastChild(linePtr,level): 
 			print subVars("Headings","after-headings")
 			level = level - 1
 			exitlevel = 1
+			childnumber = 1
 			dprint("lc")
-			parents.pop()
+			if len(parents): parents.pop()
 	elif getHeadingType(linePtr) == 'bulleted':
 		v["%%"] = dashStrip(v["%%"])
+		childnumber = childnumber + 1
 		if isFirstChild(linePtr): 
+			childnumber = 1
 			level = level + 1
 			print subVars("Headings","before-bulleted-headings")
-		print subVars("Headings","bulleted-heading")
 		if isParent(linePtr):
+			print subVars("Headings","bulleted-branch-heading")
 			parents.append(linePtr)
 			linePtr = linePtr + 1
+			dprint("ho:",linePtr)
 			handleObjects()
+			dprint("xl:",level)
+		else:
+			print subVars("Headings","bulleted-leaf-heading")
+		dprint("lp:",linePtr,"ml:",level)
 		if isLastChild(linePtr,level): 
 			print subVars("Headings","after-bulleted-headings")
 			level = level - 1
 			exitlevel = 1
-			parents.pop()
+			childnumber = 1
+			dprint("lc")
+			if len(parents): parents.pop()
 	elif getHeadingType(linePtr) == 'numbered':
 		v["%%"] = plusStrip(v["%%"])
+		childnumber = childnumber + 1
 		if isFirstChild(linePtr): 
+			childnumber = 1
 			level = level + 1
 			print subVars("Headings","before-numbered-headings")
-		print subVars("Headings","numbered-heading")
 		if isParent(linePtr):
+			print subVars("Headings","numbered-branch-heading")
 			parents.append(linePtr)
 			linePtr = linePtr + 1
+			dprint("ho:",linePtr)
 			handleObjects()
+			dprint("xl:",level)
+		else:
+			print subVars("Headings","numbered-leaf-heading")
+		dprint("lp:",linePtr,"ml:",level)
 		if isLastChild(linePtr,level): 
 			print subVars("Headings","after-numbered-headings")
 			level = level - 1
 			exitlevel = 1
-			parents.pop()
+			childnumber = 1
+			dprint("lc")
+			if len(parents): parents.pop()
 	else: 
 		print
 		print "Error: unknown heading type"
