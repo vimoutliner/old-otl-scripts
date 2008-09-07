@@ -7,8 +7,8 @@
 # Copyright (c) 2005 Noel Henson All rights reserved
 #
 # ALPHA VERSION!!!
-# $Revision: 1.5 $
-# $Date: 2008/09/05 18:50:48 $
+# $Revision: 1.6 $
+# $Date: 2008/09/05 21:46:33 $
 # $Author: noel $
 # $Source: /home/noel/active/otl2tags/RCS/otl2tags.py,v $
 # $Locker: noel $
@@ -23,6 +23,10 @@
 # Change Log
 #
 #	$Log: otl2tags.py,v $
+#	Revision 1.6  2008/09/05 21:46:33  noel
+#	Added an initial parent line number pop for the title line to
+#	fix a bug in generating graphviz files.
+#
 #	Revision 1.5  2008/09/05 18:50:48  noel
 #	Fixed recursion.
 #	Modified the config file to support nexted and unnested nodes.
@@ -100,8 +104,8 @@ def showUsage():
 def showVersion():
 	 print
 	 print "RCS"
-	 print " $Revision: 1.5 $"
-	 print " $Date: 2008/09/05 18:50:48 $"
+	 print " $Revision: 1.6 $"
+	 print " $Date: 2008/09/05 21:46:33 $"
 	 print " $Author: noel $"
 	 print " $Source: /home/noel/active/otl2tags/RCS/otl2tags.py,v $"
 	 print
@@ -169,9 +173,15 @@ def readFile(inputfile):
 	global lines
 	file = open(inputfile,"r")
 	linein = file.readline()
-	while linein != "":
-	  lines.append(linein)
-	  linein = file.readline()
+	if config.get("Document","first-is-node") == "true":
+		while linein != "":
+		  lines.append("\t"+linein)
+		  linein = file.readline()
+		lines[0] = lines[0].lstrip("\t")
+	else:
+		while linein != "":
+		  lines.append(linein)
+		  linein = file.readline()
 	return
 	file.close
 
@@ -871,8 +881,11 @@ def main():
 	initVariables()
 	readFile(inputfile)
 	v["%t"] = lfStrip(lines[0])		# get the title
-	parents.append(linePtr)
-	linePtr = 1
+	if config.get("Document","first-is-node") == "true":
+		parents.append(linePtr)
+		linePtr = 1
+	else:
+		linePtr = 1
 
 	addPreamble()
 
