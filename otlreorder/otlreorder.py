@@ -5,8 +5,8 @@
 #
 # Copyright 2006 Noel Henson All rights reserved
 #
-# $Revision: 1.5 $
-# $Date: 2006/08/05 15:47:19 $
+# $Revision: 1.6 $
+# $Date: 2007/03/01 00:23:35 $
 # $Author: noel $
 # $Source: /home/noel/active/otlreorder/RCS/otlreorder.py,v $
 # $Locker: noel $
@@ -126,8 +126,8 @@ def showUsage():
 def showVersion():
    print
    print "RCS"
-   print " $Revision: 1.5 $"
-   print " $Date: 2006/08/05 15:47:19 $"
+   print " $Revision: 1.6 $"
+   print " $Date: 2007/03/01 00:23:35 $"
    print " $Author: noel $"
    print
 
@@ -219,6 +219,7 @@ def processFile(pattern):
 				  parentprinted[j] = 1
 		  # print my decendents
 		  i = i + 1
+		  if i >= len(lines): return
 		  line = lines[i]
 		  level = getLineLevel(line)
 		  while (i < len(lines)) and (getLineLevel(line) > matchlevel):
