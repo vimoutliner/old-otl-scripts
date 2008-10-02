@@ -5,8 +5,8 @@
 # Copyright 2001 Noel Henson All rights reserved
 #
 # ALPHA VERSION!!!
-# $Revision: 1.49 $
-# $Date: 2006/11/05 21:25:49 $
+# $Revision: 1.50 $
+# $Date: 2006/12/31 16:35:12 $
 # $Author: noel $
 # $Source: /home/noel/active/otl2html/RCS/otl2html.py,v $
 # $Locker: noel $
@@ -167,8 +167,8 @@ def showSyntax():
 def showVersion():
    print
    print "RCS"
-   print " $Revision: 1.49 $"
-   print " $Date: 2006/11/05 21:25:49 $"
+   print " $Revision: 1.50 $"
+   print " $Date: 2006/12/31 16:35:12 $"
    print " $Author: noel $"
    print
 
@@ -786,6 +786,8 @@ def createCSS():
   output += "}\n"
   output += "	/* outline level spacing */\n"
   output += "OL { \n"
+  output += "        margin-left: 1.0em;\n"
+  output += "        padding-left: 0;\n"
   output += "        padding-bottom: 8pt;\n"
   output += "}\n"
   output += "	/* global heading settings */\n"
@@ -994,8 +996,8 @@ def printHeader(linein):
   global styleSheet, inlineStyle
   print "<!DOCTYPE HTML PUBLIC \"-//W3C//DTD HTML 4.01 Transitional//EN\" \"http://www.w3.org/TR/html4/strict.dtd\">"
   print "<html><head><title>" + getTitleText(linein) + "</title>"
-  print"<!--  $Revision: 1.49 $ -->"
-  print"<!--  $Date: 2006/11/05 21:25:49 $ -->"
+  print"<!--  $Revision: 1.50 $ -->"
+  print"<!--  $Date: 2006/12/31 16:35:12 $ -->"
   print"<!--  $Author: noel $ -->"
   try:
 	file = open(styleSheet,"r") 
