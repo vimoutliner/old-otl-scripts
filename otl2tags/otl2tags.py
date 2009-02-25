@@ -7,8 +7,8 @@
 # Copyright (c) 2005 Noel Henson All rights reserved
 #
 # ALPHA VERSION!!!
-# $Revision: 1.6 $
-# $Date: 2008/09/05 21:46:33 $
+# $Revision: 1.7 $
+# $Date: 2008/09/07 14:36:57 $
 # $Author: noel $
 # $Source: /home/noel/active/otl2tags/RCS/otl2tags.py,v $
 # $Locker: noel $
@@ -23,6 +23,15 @@
 # Change Log
 #
 #	$Log: otl2tags.py,v $
+#	Revision 1.7  2008/09/07 14:36:57  noel
+#	Fixed a bug that caused either exports to GraphViz to work and FreeMind
+#	to fail and vice-versa. Had to do with pushing the initial node number i
+#	the parent stack.
+#	To this end and new flag was added: first-is-node. When 'true' the program
+#	properly indents the file to show the first line of the file is the 0th
+#	node even if it shares the same indent level as the rest of the top-most
+#	nodes.
+#
 #	Revision 1.6  2008/09/05 21:46:33  noel
 #	Added an initial parent line number pop for the title line to
 #	fix a bug in generating graphviz files.
@@ -77,7 +86,8 @@ text = ""
 
 def dprint(*vals):
 	global debug
-	if debug != 0: print vals
+	if debug != 0: 
+		print >> sys.stderr, vals
 
 # usage
 # print the simplest form of help
@@ -92,7 +102,7 @@ def showUsage():
 	 print "    -c             config-file"
 	 print "    -d             debug"
 	 print "    --help         show help"
-	 print "    -v              Print version (RCS) information."
+	 print "    -v             Print version (RCS) information."
 	 print "output filenames are based on the input file name and the config file"
 	 print
 
@@ -104,8 +114,8 @@ def showUsage():
 def showVersion():
 	 print
 	 print "RCS"
-	 print " $Revision: 1.6 $"
-	 print " $Date: 2008/09/05 21:46:33 $"
+	 print " $Revision: 1.7 $"
+	 print " $Date: 2008/09/07 14:36:57 $"
 	 print " $Author: noel $"
 	 print " $Source: /home/noel/active/otl2tags/RCS/otl2tags.py,v $"
 	 print
@@ -153,16 +163,16 @@ def getArgs():
 
 def printConfig():
   global config
-  print"Config ---------------------------------------------"
+  print >> sys.stderr, "Config ---------------------------------------------"
   list = config.sections()
   for i in range(len(list)):
-	  print
-	  print list[i]
+	  print >> sys.stderr
+	  print >> sys.stderr, list[i]
 	  for x in config.options(list[i]):
 	    if (x !="name") and (x !="__name__"):
-	      print x,":", config.get(list[i],x)
-  print"----------------------------------------------------"
-  print 
+	      print >> sys.stderr, x,":", config.get(list[i],x)
+  print >> sys.stderr, "----------------------------------------------------"
+  print >> sys.stderr  
 
 # readFile
 # read the selected file into lines[]
@@ -171,19 +181,21 @@ def printConfig():
 
 def readFile(inputfile):
 	global lines
+	lasttype = ""
+	type = ""
 	file = open(inputfile,"r")
 	linein = file.readline()
-	if config.get("Document","first-is-node") == "true":
-		while linein != "":
-		  lines.append("\t"+linein)
-		  linein = file.readline()
-		lines[0] = lines[0].lstrip("\t")
-	else:
-		while linein != "":
-		  lines.append(linein)
-		  linein = file.readline()
-	return
+	while linein != "":
+		lines.append(linein)
+		linein = file.readline()
+
 	file.close
+
+	if config.get("Document","first-is-node") == "true":
+		for line in range(len(lines)):
+			lines[line] = "\t"+lines[line]
+		lines[0] = lines[0].lstrip("\t")
+	return
 
 # initVariables
 # initialize the document v
@@ -393,7 +405,12 @@ def isFirstChild(linenum):
 # output: returns 1 if the last child, 0 if not
 
 def isLastChild(linenum,mylevel):
-	global lines,parents
+	global lines
+#	if (linenum < len(lines):
+#		next = nextHeadingAtLevel(linenum,mylevel)
+#		if (mylevel > indentLevel(next)): return 1
+#		else: return 0
+#	else: return 1
 	if linenum == len(lines)-1: return 1
 	elif mylevel>=indentLevel(linenum+1): 
 		return 1
@@ -417,7 +434,7 @@ def isFirstTableLine(linenum):
 # output: returns 1 if the last table line, 0 if not
 
 def isLastTableLine(linenum):
-	if (linenum < len(lines)):
+	if (linenum < len(lines)-1):
 		if getLineType(linenum+1) != 'table': return 1
 		else: return 0
 	else: return 0
@@ -440,10 +457,10 @@ def isFirstTextLine(linenum):
 # output: returns 1 if the last text line, 0 if not
 
 def isLastTextLine(linenum):
-	if (linenum < len(lines)):
+	if (linenum < len(lines)-1):
 		if getLineType(linenum+1) != 'text': return 1
 		else: return 0
-	else: return 0
+	else: return 1
 
 # isFirstPrefTextLine
 # determine if the line is the first line of a preftext
@@ -463,10 +480,10 @@ def isFirstPrefTextLine(linenum):
 # output: returns 1 if the last preftext line, 0 if not
 
 def isLastPrefTextLine(linenum):
-	if (linenum < len(lines)):
+	if (linenum < len(lines)-1):
 		if getLineType(linenum+1) != 'preftext': return 1
 		else: return 0
-	else: return 0
+	else: return 1
 
 # isFirstUserPrefTextLine
 # determine if the line is the first line of a preftext
@@ -486,10 +503,10 @@ def isFirstUserPrefTextLine(linenum):
 # output: returns 1 if the last preftext line, 0 if not
 
 def isLastUserPrefTextLine(linenum):
-	if (linenum < len(lines)):
+	if (linenum < len(lines)-1):
 		if getLineType(linenum+1) != 'userpreftext': return 1
 		else: return 0
-	else: return 0
+	else: return 1
 
 # isFirstUserTextLine
 # determine if the line is the first line of a preftext
@@ -509,10 +526,10 @@ def isFirstUserTextLine(linenum):
 # output: returns 1 if the last preftext line, 0 if not
 
 def isLastUserTextLine(linenum):
-	if (linenum < len(lines)):
+	if (linenum < len(lines)-1):
 		if getLineType(linenum+1) != 'usertext': return 1
 		else: return 0
-	else: return 0
+	else: return 1
 
 # subVars
 # substitute variables in output expressions
@@ -563,6 +580,7 @@ def handleHeading():
 			linePtr = linePtr + 1
 			dprint("ho:",linePtr)
 			handleObjects()
+			dprint("/ho:",linePtr)
 			dprint("xl:",level)
 		else:
 			print subVars("Headings","leaf-heading")
