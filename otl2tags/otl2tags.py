@@ -7,8 +7,8 @@
 # Copyright (c) 2005 Noel Henson All rights reserved
 #
 # ALPHA VERSION!!!
-# $Revision: 1.7 $
-# $Date: 2008/09/07 14:36:57 $
+# $Revision: 1.8 $
+# $Date: 2009/02/25 20:19:11 $
 # $Author: noel $
 # $Source: /home/noel/active/otl2tags/RCS/otl2tags.py,v $
 # $Locker: noel $
@@ -23,6 +23,10 @@
 # Change Log
 #
 #	$Log: otl2tags.py,v $
+#	Revision 1.8  2009/02/25 20:19:11  noel
+#	Added error message prints to stderr.
+#	Added more debug info.
+#
 #	Revision 1.7  2008/09/07 14:36:57  noel
 #	Fixed a bug that caused either exports to GraphViz to work and FreeMind
 #	to fail and vice-versa. Had to do with pushing the initial node number i
@@ -114,8 +118,8 @@ def showUsage():
 def showVersion():
 	 print
 	 print "RCS"
-	 print " $Revision: 1.7 $"
-	 print " $Date: 2008/09/07 14:36:57 $"
+	 print " $Revision: 1.8 $"
+	 print " $Date: 2009/02/25 20:19:11 $"
 	 print " $Author: noel $"
 	 print " $Source: /home/noel/active/otl2tags/RCS/otl2tags.py,v $"
 	 print
@@ -766,7 +770,7 @@ def handlePrefText():
 
 	global linePtr, lines, level, v, text
 
-	v["%%"] = lfStrip(semicolonStrip(lstrip(rstrip(lines[linePtr]))))
+	v["%%"] = semicolonStrip(lstrip(lines[linePtr]))
 	
 	if isFirstPrefTextLine(linePtr):
 		level = level + 1
@@ -858,14 +862,14 @@ def addPostamble():
 # output: standard out
 
 def handleObject(linenum):
-	
-	if getLineType(linenum) == 'heading': handleHeading()
-	elif getLineType(linenum) == 'text': handleText()
-	elif getLineType(linenum) == 'usertext': handleUserText()
-	elif getLineType(linenum) == 'preftext': handlePrefText()
-	elif getLineType(linenum) == 'userpreftext': handleUserPrefText()
-	elif getLineType(linenum) == 'command': handleHeading()
-	elif getLineType(linenum) == 'table': handleTable()
+	test = getLineType(linenum)
+	if   test == 'heading': handleHeading()
+	elif test == 'text': handleText()
+	elif test == 'usertext': handleUserText()
+	elif test == 'preftext': handlePrefText()
+	elif test == 'userpreftext': handleUserPrefText()
+	elif test == 'command': handleHeading()
+	elif test == 'table': handleTable()
 	else:
 		print
 		print "Error: unknown line type"
@@ -909,6 +913,8 @@ def main():
 
 	handleObjects()
 		
+#	if config.get("Document","first-is-node") == "true":
+#		print subVars("Headings","after-headings")
 	addPostamble()
 
 main()
