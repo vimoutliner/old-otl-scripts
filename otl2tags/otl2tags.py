@@ -6,8 +6,8 @@
 #
 # Copyright (c) 2005-2010 Noel Henson All rights reserved
 #
-# $Revision: 1.9 $
-# $Date: 2010/01/23 23:17:59 $
+# $Revision: 1.10 $
+# $Date: 2010/01/26 07:07:37 $
 # $Author: noel $
 # $Source: /home/noel/active/otl2tags/RCS/otl2tags.py,v $
 # $Locker: noel $
@@ -22,6 +22,10 @@
 # Change Log
 #
 #	$Log: otl2tags.py,v $
+#	Revision 1.10  2010/01/26 07:07:37  noel
+#	Major restructuring and refactoring.
+#	Not quite ready yet; only a few objects implemented.
+#
 #	Revision 1.9  2010/01/23 23:17:59  noel
 #	Minor edits before major refactoring.
 #
@@ -114,8 +118,8 @@ def showUsage():
 def showVersion():
 	 print
 	 print "RCS"
-	 print " $Revision: 1.9 $"
-	 print " $Date: 2010/01/23 23:17:59 $"
+	 print " $Revision: 1.10 $"
+	 print " $Date: 2010/01/26 07:07:37 $"
 	 print " $Author: noel $"
 	 print " $Source: /home/noel/active/otl2tags/RCS/otl2tags.py,v $"
 	 print
@@ -206,10 +210,8 @@ def getLineType(line):
 	if (line[0] == ':'): return 'text'
 	elif (line[0] == ';'): return 'preftext'
 	elif (line[0] == '>'): return 'usertext'
-#	elif (line[0:4] == '<cmd'): return 'command'
-#	elif (line[0] == '<'): return 'userpreftext'
-#	elif (line[0:] == '||'): return 'tableheader'
-#	elif (line[0] == '|'): return 'table'
+	elif (line[0] == '<'): return 'userpreftext'
+	elif (line[0] == '|'): return 'table'
 	elif (line[0] == '-'): return 'bulletheading'
 	elif (line[0] == '+'): return 'numberheading'
 #	elif (line[0] == '['): return 'checkboxheading'
@@ -241,17 +243,13 @@ def getChildren(linenum):
 # input:  - substitution item (by name) from config array
 # output: string - the substitution expression with variables inserted
 
-def subVars(section,type,linenum,enum):
+def subVars(section,type):
 	global config, v, parents
 
 	varlist = v.keys()
 	pattern = config.get(section,type)
-	v["%n"] = str(linenum)
-	v["%l"] = str(outline[linenum][1])
-	v["%c"] = str(enum)
 	if len(parents) > 0:
 		v["%p"] = str(parents[len(parents)-1])
-	# v["%%"] = lstrip(rstrip(lines[linePtr])) - this should be done in handling
 
 	for var in varlist:
 		x = ""
@@ -271,15 +269,32 @@ def getBlock(linenum,marker):
 
 	lines = []
 	line = outline[linenum][0]
-	lastline = linecount - 1
-	while (linenum < lastline) and (line[0] == marker):
+	while line[0] == marker:
 		lines.append(stripMarker(line,marker))
 		linenum = linenum + 1
+		if linenum == linecount: break	
+		line = outline[linenum][0]
+	return lines
+
+#getUnstrippedBlock
+#return a list of lines that match a mark (like : or ;)
+#input: line number
+#output: list of stripped lines
+
+def getUnstrippedBlock(linenum,marker):
+	global outline, linecount
+
+	lines = []
+	line = outline[linenum][0]
+	while line[0] == marker:
+		lines.append(line)
+		linenum = linenum + 1
+		if linenum == linecount: break	
 		line = outline[linenum][0]
 	return lines
 
 ###########################################################################
-# outline object processing functions
+# outline header processing functions
 
 # all outline object processors accept and output the following:
 # input: linenum, enum
@@ -289,96 +304,238 @@ def handleHeading(linenum,enum):
 	global outline, parents
 
 	v["%%"] = outline[linenum][0]
+	v["%l"] = str(outline[linenum][1])
+	v["%n"] = str(linenum)
+	v["%c"] = str(enum)
 	children = getChildren(linenum)
 	if enum == 1:
-		print subVars("Headings","before-headings",linenum,enum)
+		print subVars("Headings","before-headings")
 	if children:
-		print subVars("Headings","branch-heading",linenum,enum)
+		print subVars("Headings","branch-heading")
 		parents.append([linenum,enum])
 		handleObjects(children)
 		parents.pop()
-		print subVars("Headings","after-headings",linenum,enum)
+		print subVars("Headings","after-headings")
 	else:
-		print subVars("Headings","leaf-heading",linenum,enum)
+		print subVars("Headings","leaf-heading")
 
 def handleBulleted(linenum,enum):
 	global outline, parents
 
 	v["%%"] = outline[linenum][0]
+	v["%l"] = str(outline[linenum][1])
+	v["%n"] = str(linenum)
+	v["%c"] = str(enum)
 	children = getChildren(linenum)
 	if enum == 1:
-		print subVars("Headings","before-bulleted-headings",linenum,enum)
+		print subVars("Headings","before-bulleted-headings")
 	if children:
-		print subVars("Headings","branch-bulleted-heading",linenum,enum)
+		print subVars("Headings","bulleted-branch-heading")
 		parents.append([linenum,enum])
 		handleObjects(children)
 		parents.pop()
-		print subVars("Headings","after-bulleted-headings",linenum,enum)
+		print subVars("Headings","after-bulleted-headings")
 	else:
-		print subVars("Headings","leaf-bulleted-heading",linenum,enum)
+		print subVars("Headings","bulleted-leaf-heading")
 
 def handleNumbered(linenum,enum):
 	global outline, parents
 
 	v["%%"] = outline[linenum][0]
+	v["%l"] = str(outline[linenum][1])
+	v["%n"] = str(linenum)
+	v["%c"] = str(enum)
 	children = getChildren(linenum)
 	if enum == 1:
-		print subVars("Headings","before-numbered-headings",linenum,enum)
+		print subVars("Headings","before-numbered-headings")
 	if children:
-		print subVars("Headings","branch-numbered-heading",linenum,enum)
+		print subVars("Headings","numbered-branch-heading")
 		parents.append([linenum,enum])
 		handleObjects(children)
 		parents.pop()
-		print subVars("Headings","after-numbered-headings",linenum,enum)
+		print subVars("Headings","after-numbered-headings")
 	else:
-		print subVars("Headings","leaf-numbered-heading",linenum,enum)
+		print subVars("Headings","numbered-leaf-heading")
+
+###########################################################################
+# outline text block processing functions
+
+# all outline object processors accept and output the following:
+# input: linenum, enum
+# output: print the output for each object
 
 def handleText(linenum,enum):
 	global outline, parents
 
-	if enum == 1: # since we're working on a block, only execute once
-		list = getBlock(linenum,':')
-		print subVars("Text","before",linenum,enum)
-		lines = ""
-		for line in list:
-			if line == "":
-				lines = lines + config.get("Text","paragraph-sep")
-			else:
-				lines = lines + line + config.get("Text","line-sep")
-		v["%%"] = lines
-		print subVars("Text","text",linenum,enum),
-		print subVars("Text","after",linenum,enum)
+	if enum != 1: return # only execute for first call
+
+	v["%l"] = str(outline[linenum][1])
+	v["%n"] = str(linenum)
+	v["%c"] = str(enum)
+	list = getBlock(linenum,':')
+	print subVars("Text","before")
+	lines = ""
+	for line in list:
+		if line == "":
+			lines = lines + config.get("Text","paragraph-sep")
+		else:
+			lines = lines + line + config.get("Text","line-sep")
+	v["%%"] = lines
+	print subVars("Text","text"),
+	print subVars("Text","after")
 
 def handleUserText(linenum,enum):
 	global outline, parents
-	# just a place keeper
-	print outline[linenum],enum
+
+	if enum != 1: return # only execute for first call
+
+	v["%l"] = str(outline[linenum][1])
+	v["%n"] = str(linenum)
+	v["%c"] = str(enum)
+	list = getBlock(linenum,'>')
+	print subVars("UserText","before")
+	lines = ""
+	for line in list:
+		if line == "":
+			lines = lines + config.get("UserText","paragraph-sep")
+		else:
+			lines = lines + line + config.get("UserText","line-sep")
+	v["%%"] = strip(lines) # remove a possible extra separator
+	print subVars("UserText","text"),
+	print subVars("UserText","after")
 
 def handlePrefText(linenum,enum):
 	global outline, parents
 
-	if enum == 1: # since we're working on a block, only execute once
-		list = getBlock(linenum,';')
-		print subVars("PrefText","before",linenum,enum)
-		lines = ""
-		for line in list:
-			if line == "":
-				lines = lines + config.get("PrefText","paragraph-sep")
-			else:
-				lines = lines + line + config.get("PrefText","line-sep")
-		v["%%"] = strip(lines) # remove a possible extra separator
-		print subVars("PrefText","text",linenum,enum),
-		print subVars("PrefText","after",linenum,enum)
+	if enum != 1: return # only execute for first call
+
+	v["%l"] = str(outline[linenum][1])
+	v["%n"] = str(linenum)
+	v["%c"] = str(enum)
+	list = getBlock(linenum,';')
+	print subVars("PrefText","before")
+	lines = ""
+	for line in list:
+		if line == "":
+			lines = lines + config.get("PrefText","paragraph-sep")
+		else:
+			lines = lines + line + config.get("PrefText","line-sep")
+	v["%%"] = strip(lines) # remove a possible extra separator
+	print subVars("PrefText","text"),
+	print subVars("PrefText","after")
 
 def handleUserPrefText(linenum,enum):
 	global outline, parents
-	# just a place keeper
-	print outline[linenum],enum
+
+	if enum != 1: return # only execute for first call
+
+	v["%l"] = str(outline[linenum][1])
+	v["%n"] = str(linenum)
+	v["%c"] = str(enum)
+	list = getBlock(linenum,'<')
+	print subVars("UserPrefText","before")
+	lines = ""
+	for line in list:
+		if line == "":
+			lines = lines + config.get("UserPrefText","paragraph-sep")
+		else:
+			lines = lines + line + config.get("UserPrefText","line-sep")
+	v["%%"] = strip(lines) # remove a possible extra separator
+	print subVars("UserPrefText","text"),
+	print subVars("UserPrefText","after")
+
+###########################################################################
+# outline table processing functions
+
+# isAlignRight
+# return flag
+# input: col, a string
+
+def isAlignRight(col):
+  l = len(col)
+  if (col[0:2] == "  ") and (col[l-2:l] != "  "): return 1
+  else: return 0
+
+# isAlignLeft
+# return flag
+# input: col, a string
+
+def isAlignLeft(col):
+  l = len(col)
+  if (col[0:2] != "  ") and (col[l-2:l] == "  "): return 1
+  else: return 0
+
+# isAlignCenter
+# return flag
+# input: col, a string
+
+def isAlignCenter(col):
+  l = len(col)
+  if (col[0:2] == "  ") and (col[l-2:l] == "  "): return 1
+  else: return 0
+
+# handleHeaderRow
+# process a non-header table row
+# input: row
+# output: print the output for each object
+
+def handleHeaderRow(row):
+	global outline, parents
+
+	row = lstrip(rstrip(row,"|"),"|")
+	columns = row.split("|")
+	print subVars("Tables","before-table-header")
+	for col in columns:
+		v["%%"] = strip(col)
+		if isAlignCenter: print subVars("Tables","table-header-column-center")
+		elif isAlignCenter: print subVars("Tables","table-header-column-center")
+		elif isAlignCenter: print subVars("Tables","table-header-column-center")
+		else: print subVars("Tables","table-header-column")
+	print subVars("Tables","after-table-header")
+
+# handleRow
+# process a non-header table row
+# input: row
+# output: print the output for each object
+
+def handleRow(row):
+	global outline, parents
+
+	if row[0:2] == "||":
+		handleHeaderRow(row)
+		return
+	row = lstrip(rstrip(row,"|"),"|")
+	columns = row.split("|")
+	print subVars("Tables","before-table-row")
+	for col in columns:
+		v["%%"] = strip(col)
+		if isAlignCenter: print subVars("Tables","table-column-center")
+		elif isAlignLeft: print subVars("Tables","table-column-left")
+		elif isAlignRight: print subVars("Tables","table-column-right")
+		else: print subVars("Tables","table-column")
+	print subVars("Tables","after-table-row")
+
+# handleTable
+# process a table
+# input: linenum, enum
+# output: print the output for each object
 
 def handleTable(linenum,enum):
 	global outline, parents
-	# just a place keeper
-	print outline[linenum],enum
+
+	if enum != 1: return # only execute for first call
+
+	v["%l"] = str(outline[linenum][1])
+	v["%n"] = str(linenum)
+	v["%c"] = str(enum)
+	list = getUnstrippedBlock(linenum,'|')
+	print subVars("Tables","before")
+	for row in list:
+		handleRow(row)
+	print subVars("Tables","after")
+
+###########################################################################
+# outline wrapper processing functions
 
 # addPreamble
 # create the 'header' for the output document
@@ -389,7 +546,7 @@ def addPreamble():
 	global outline, v
 
 	v["%%"] = ""
-	print subVars("Document","preamble",0,0)
+	print subVars("Document","preamble")
 
 # addPostamble
 # create the 'header' for the output document
@@ -400,7 +557,7 @@ def addPostamble():
 	global outline, v
 
 	v["%%"] = ""
-	print subVars("Document","postamble",0,0)
+	print subVars("Document","postamble")
 
 
 ###########################################################################
@@ -422,7 +579,6 @@ def handleObject(linenum,enum):
 	elif obj == 'usertext': handleUserText(linenum,enum)
 	elif obj == 'preftext': handlePrefText(linenum,enum)
 	elif obj == 'userpreftext': handleUserPrefText(linenum,enum)
-	elif obj == 'command': handleHeading(linenum,enum)
 	elif obj == 'table': handleTable(linenum,enum)
 	else:
 		print
@@ -473,9 +629,6 @@ def main():
 	global outline, inputfile, linecount
 	getArgs()
 
-#	if (debug !=0): printConfig()
-#	initVariables()
-#
 	readFile(inputfile)
 	v["%t"] = strip(outline[0][0])		# get the title
 	addPreamble()
@@ -486,6 +639,6 @@ def main():
 	handleObjects(objs)
 	addPostamble()
 
-
+	print getUnstrippedBlock(25,"|")
 
 main()
