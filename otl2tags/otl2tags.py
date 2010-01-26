@@ -4,11 +4,10 @@
 # definable configuration files. HTML, OPML, XML, LATEX and
 # many, many others should be easily supportables.
 #
-# Copyright (c) 2005 Noel Henson All rights reserved
+# Copyright (c) 2005-2010 Noel Henson All rights reserved
 #
-# ALPHA VERSION!!!
-# $Revision: 1.8 $
-# $Date: 2009/02/25 20:19:11 $
+# $Revision: 1.9 $
+# $Date: 2010/01/23 23:17:59 $
 # $Author: noel $
 # $Source: /home/noel/active/otl2tags/RCS/otl2tags.py,v $
 # $Locker: noel $
@@ -23,6 +22,9 @@
 # Change Log
 #
 #	$Log: otl2tags.py,v $
+#	Revision 1.9  2010/01/23 23:17:59  noel
+#	Minor edits before major refactoring.
+#
 #	Revision 1.8  2009/02/25 20:19:11  noel
 #	Added error message prints to stderr.
 #	Added more debug info.
@@ -68,20 +70,14 @@ from re import *
 ###########################################################################
 # global variables
 
-level = 0
-childnumber = 1
-exitlevel = 0
-inputFile = ""
-lines = []
-parents = []
-config = ConfigParser()
-debug = 0
-linePtr = 0
-v = {}				# outline variables
-text = ""
+config = ConfigParser()	# configuration
+outline = []		# line tuples (value,indent)
+linecount = 0		# outline size in lines
+parents = []		# parent stack, (linenum,enum) enum is an order numer
+v = {}			# variable dictionary for substitution
 
 ###########################################################################
-# function definitions
+# arugment, help and debug functions
 
 # usage
 # print debug statements
@@ -118,8 +114,8 @@ def showUsage():
 def showVersion():
 	 print
 	 print "RCS"
-	 print " $Revision: 1.8 $"
-	 print " $Date: 2009/02/25 20:19:11 $"
+	 print " $Revision: 1.9 $"
+	 print " $Date: 2010/01/23 23:17:59 $"
 	 print " $Author: noel $"
 	 print " $Source: /home/noel/active/otl2tags/RCS/otl2tags.py,v $"
 	 print
@@ -178,362 +174,65 @@ def printConfig():
   print >> sys.stderr, "----------------------------------------------------"
   print >> sys.stderr  
 
-# readFile
-# read the selected file into lines[]
-# input: filename to be loaded
-# output: a loaded-up lines[]
+###########################################################################
+# low-level outline processing functions
 
-def readFile(inputfile):
-	global lines
-	lasttype = ""
-	type = ""
-	file = open(inputfile,"r")
-	linein = file.readline()
-	while linein != "":
-		lines.append(linein)
-		linein = file.readline()
-
-	file.close
-
-	if config.get("Document","first-is-node") == "true":
-		for line in range(len(lines)):
-			lines[line] = "\t"+lines[line]
-		lines[0] = lines[0].lstrip("\t")
-	return
-
-# initVariables
-# initialize the document v
-# input: global dictionary 'v'
-# output: global dictionary 'v'
-
-def initVariables():
-	global v
-	v["%n"] = "0"	# line number
-	v["%N"] = "0"	# line number for first line of text block
-	v["%p"] = "0"	# parent line number
-	v["%c"] = "0"	# my child number
-	v["%l"] = "0"	# outline level (depth)
-	v["%%"] = ""	# object text
-	v["%t"] = ""	# document title (the first line)
-
-# lfStrip(line)
-# strip the trailing lf from the line
-# input: line
-# output: returns a string with a stripped 'lf'
-
-def lfStrip(line):
-	return rstrip(line,'\n')
-
-# colonStrip(line)
-# strip a leading ':', if it exists
-# input: line
-# output: returns a string with a stripped ':'
-
-def colonStrip(line):
-	if (line[0] == ":"): return lstrip(line,': ')
-        else: return line
-
-# semicolonStrip(line)
-# strip a leading ';', if it exists
-# input: line
-# output: returns a string with a stripped ';'
-
-def semicolonStrip(line):
-	if (line[0] == ";"): return lstrip(line,'; ')
-        else: return line
-
-# dashStrip(line)
-# strip a leading '-', if it exists
-# input: line
-# output: returns a string with a stripped '-'
-
-def dashStrip(line):
-	if (line[0] == "-"): return lstrip(line,'-')
-        else: return line
-
-# greaterStrip(line)
-# strip a leading '>', if it exists
-# input: line
-# output: returns a string with a stripped '>'
-
-def greaterStrip(line):
-	if (line[0] == ">"): return lstrip(line,'> ')
-        else: return line
-
-# lessStrip(line)
-# strip a leading '<', if it exists
-# input: line
-# output: returns a string with a stripped '<'
-
-def lessStrip(line):
-	if (line[0] == "<"): return lstrip(line,'< ')
-        else: return line
-
-# pipeStrip(line)
-# strip a leading '|', if it exists
-# input: line
-# output: returns a string with a stripped '|'
-
-def pipeStrip(line):
-	if (line[0] == "|"): return lstrip('|')
-        else: return line
-
-# plusStrip(line)
-# strip a leading '+', if it exists
-# input: line
-# output: returns a string with a stripped '+'
-
-def plusStrip(line):
-	if (line[0] == "+"): return lstrip(line,'+')
-        else: return line
-
-# getLevel
+# indentLevel
 # get the level of the line specified by linenum
-# input: linenum - the number of the line to test
+# input: line
 # output: returns the level number, 1 is the lowest
 
-def indentLevel(linenum):
-	global lines
-	line = lines[linenum]
+def indentLevel(line):
 	strstart = line.lstrip()		# find the start of text in line
 	x = find(line,strstart)			# find the text index in the line
 	n = count(line,"\t",0,x)			# count the tabs
 	n = n + count(line," ",0,x)			# count the spaces
 	return(n+1)					# return the count + 1 (for level)
 
+# stripMarker
+# return a line without its marker and leading and trailing whitespace
+# input: line, marker
+# output: stripped line
+
+def stripMarker(line,marker):
+	return strip(lstrip(line,marker))
+
 # getLineType
 # return the type of the line specified by linenum
-# input: linenum - the number of the line to test
+# input: line
 # output: returns text, usertext, table, preftext, etc.
 
-def getLineType(linenum):
-	global lines
-	line = lines[linenum].lstrip()
+def getLineType(line):
 	if (line[0] == ':'): return 'text'
 	elif (line[0] == ';'): return 'preftext'
 	elif (line[0] == '>'): return 'usertext'
-	elif (line[0:4] == '<cmd'): return 'command'
-	elif (line[0] == '<'): return 'userpreftext'
-	elif (line[0] == '|'): return 'table'
+#	elif (line[0:4] == '<cmd'): return 'command'
+#	elif (line[0] == '<'): return 'userpreftext'
+#	elif (line[0:] == '||'): return 'tableheader'
+#	elif (line[0] == '|'): return 'table'
+	elif (line[0] == '-'): return 'bulletheading'
+	elif (line[0] == '+'): return 'numberheading'
+#	elif (line[0] == '['): return 'checkboxheading'
 	elif (line[0] == ''): return 'blank'
 	else: return 'heading'
 
-# getHeadingType
-# return the heading type of the line specified by linenum
-# input: linenum - the number of the line to test
-# output: returns bulletedlist, numberedlist, etc.
+# getChildren
+# return a list of line numbers for children of the passed line number
+# input: linenum
+# output: a (possibly) empty list of children
 
-def getHeadingType(linenum):
-	global lines
-	line = lines[linenum].lstrip()
-	if (line[0] == '-'): return 'bulleted'
-	elif (line[0] == '+'): return 'numbered'
-	else: return 'normal'
+def getChildren(linenum):
+	global outline, linecount
 
-# getTableType
-# return the table type of the line specified by linenum
-# input: linenum - the number of the line to test
-# output: returns table, tableheader
-
-def getTableType(linenum):
-	global lines
-	line = lines[linenum].lstrip()
-	if (line[0:2] == '||'): return 'tableheader'
-	else: return 'tablerow'
-
-# prevHeading
-# return the line number of the previous heading
-# input: linenum - the number of the line to test
-# output: number of previous heading
-
-def prevHeading(linenum):
-	global lines
-	for i in range(linenum-1,0,-1):
-		if (getLineType(i) == 'heading'): return i
-	return 0
-
-# nextHeading
-# return the line number of the next heading
-# input: linenum - the number of the line to test
-# output: number of next heading
-
-def nextHeading(linenum):
-	global lines
-	for i in range(linenum+1,len(lines)):
-		if (getLineType(i) == 'heading'): return i
-	return 0
-
-# nextHeadingAtLevel
-# return the line number of the next heading
-# input: linenum - the number of the line to test
-# output: number of next heading
-
-def nextHeadingAtLevel(linenum,lvl):
-	global lines
-	for i in range(linenum+1,len(lines)):
-		if (getLineType(i) == 'heading') and (indentLevel(i) <= lvl): return i
-	return 0
-
-
-# isParent
-# determine if the line is a parent
-# input: linenum - the number of the line to test
-# output: returns 1 if a parent, 0 if not
-
-def isParent(linenum):
-	global lines
-	if (linenum < len(lines) - 1):
-		if (indentLevel(linenum) < indentLevel(linenum+1)): return 1
-		else: return 0
-	else: return 0
-
-
-# isFirstChild
-# determine if the line is the first child of a parent
-# input: linenum - the number of the line to test
-# output: returns 1 if the first child, 0 if not
-
-def isFirstChild(linenum):
-	global lines
-	if linenum == 1: return 1
-	if (linenum < len(lines)):
-		prev = prevHeading(linenum)
-		if (indentLevel(linenum) > indentLevel(prev)): return 1
-		else: return 0
-	else: return 0
-
-# isLastChild
-# determine if the line is the last child of a parent
-# input: linenum - the number of the line to test
-# input: mylevel - the level of heading
-# output: returns 1 if the last child, 0 if not
-
-def isLastChild(linenum,mylevel):
-	global lines
-#	if (linenum < len(lines):
-#		next = nextHeadingAtLevel(linenum,mylevel)
-#		if (mylevel > indentLevel(next)): return 1
-#		else: return 0
-#	else: return 1
-	if linenum == len(lines)-1: return 1
-	elif mylevel>=indentLevel(linenum+1): 
-		return 1
-	else: return 0
-
-# isFirstTableLine
-# determine if the line is the first line of a table
-# input: linenum - the number of the line to test
-# output: returns 1 if the first table line, 0 if not
-
-def isFirstTableLine(linenum):
-	global lines
-	if (linenum < len(lines)):
-		if getLineType(linenum-1) != 'table': return 1
-		else: return 0
-	else: return 0
-
-# isLastTableLine
-# determine if the line is the last line of a table
-# input: linenum - the number of the line to test
-# output: returns 1 if the last table line, 0 if not
-
-def isLastTableLine(linenum):
-	if (linenum < len(lines)-1):
-		if getLineType(linenum+1) != 'table': return 1
-		else: return 0
-	else: return 0
-
-# isFirstTextLine
-# determine if the line is the first line of a text
-# input: linenum - the number of the line to test
-# output: returns 1 if the first text line, 0 if not
-
-def isFirstTextLine(linenum):
-	global lines
-	if (linenum < len(lines)):
-		if getLineType(linenum-1) != 'text': return 1
-		else: return 0
-	else: return 0
-
-# isLastTextLine
-# determine if the line is the last line of a text
-# input: linenum - the number of the line to test
-# output: returns 1 if the last text line, 0 if not
-
-def isLastTextLine(linenum):
-	if (linenum < len(lines)-1):
-		if getLineType(linenum+1) != 'text': return 1
-		else: return 0
-	else: return 1
-
-# isFirstPrefTextLine
-# determine if the line is the first line of a preftext
-# input: linenum - the number of the line to test
-# output: returns 1 if the first preftext line, 0 if not
-
-def isFirstPrefTextLine(linenum):
-	global lines
-	if (linenum < len(lines)):
-		if getLineType(linenum-1) != 'preftext': return 1
-		else: return 0
-	else: return 0
-
-# isLastPreftextLine
-# determine if the line is the last line of a preftext
-# input: linenum - the number of the line to test
-# output: returns 1 if the last preftext line, 0 if not
-
-def isLastPrefTextLine(linenum):
-	if (linenum < len(lines)-1):
-		if getLineType(linenum+1) != 'preftext': return 1
-		else: return 0
-	else: return 1
-
-# isFirstUserPrefTextLine
-# determine if the line is the first line of a preftext
-# input: linenum - the number of the line to test
-# output: returns 1 if the first preftext line, 0 if not
-
-def isFirstUserPrefTextLine(linenum):
-	global lines
-	if (linenum < len(lines)):
-		if getLineType(linenum-1) != 'userpreftext': return 1
-		else: return 0
-	else: return 0
-
-# isLastUserPreftextLine
-# determine if the line is the last line of a preftext
-# input: linenum - the number of the line to test
-# output: returns 1 if the last preftext line, 0 if not
-
-def isLastUserPrefTextLine(linenum):
-	if (linenum < len(lines)-1):
-		if getLineType(linenum+1) != 'userpreftext': return 1
-		else: return 0
-	else: return 1
-
-# isFirstUserTextLine
-# determine if the line is the first line of a preftext
-# input: linenum - the number of the line to test
-# output: returns 1 if the first preftext line, 0 if not
-
-def isFirstUserTextLine(linenum):
-	global lines
-	if (linenum < len(lines)):
-		if getLineType(linenum-1) != 'usertext': return 1
-		else: return 0
-	else: return 0
-
-# isLastUsertextLine
-# determine if the line is the last line of a preftext
-# input: linenum - the number of the line to test
-# output: returns 1 if the last preftext line, 0 if not
-
-def isLastUserTextLine(linenum):
-	if (linenum < len(lines)-1):
-		if getLineType(linenum+1) != 'usertext': return 1
-		else: return 0
-	else: return 1
+	children = []
+	mylevel = outline[linenum][1]
+	childlevel = mylevel + 1
+	linenum = linenum + 1
+	while (linenum < linecount) and (outline[linenum][1] > mylevel):
+		if (outline[linenum][1] == childlevel):
+			children.append(linenum)
+		linenum = linenum + 1
+	return children
 
 # subVars
 # substitute variables in output expressions
@@ -542,14 +241,14 @@ def isLastUserTextLine(linenum):
 # input:  - substitution item (by name) from config array
 # output: string - the substitution expression with variables inserted
 
-def subVars(section,type):
-	global config, v, linePtr, level, lines, parents, childnumber
+def subVars(section,type,linenum,enum):
+	global config, v, parents
 
 	varlist = v.keys()
 	pattern = config.get(section,type)
-	v["%n"] = str(linePtr)
-	v["%l"] = str(level)
-	v["%c"] = str(childnumber)
+	v["%n"] = str(linenum)
+	v["%l"] = str(outline[linenum][1])
+	v["%c"] = str(enum)
 	if len(parents) > 0:
 		v["%p"] = str(parents[len(parents)-1])
 	# v["%%"] = lstrip(rstrip(lines[linePtr])) - this should be done in handling
@@ -562,277 +261,124 @@ def subVars(section,type):
 		pattern = sub(x,y,pattern)
 	return pattern
 
-# handleHeading()
-# process a heading object and print a converted version of it
-# input: globals
-# output: standard out
+#getBlock
+#return a list of lines that match a mark (like : or ;)
+#input: line number
+#output: list of stripped lines
 
-def handleHeading():
+def getBlock(linenum,marker):
+	global outline, linecount
 
-	global linePtr, lines, level, v, exitlevel, parents, childnumber
+	lines = []
+	line = outline[linenum][0]
+	lastline = linecount - 1
+	while (linenum < lastline) and (line[0] == marker):
+		lines.append(stripMarker(line,marker))
+		linenum = linenum + 1
+		line = outline[linenum][0]
+	return lines
 
-	v["%%"] = lstrip(rstrip(lines[linePtr]))
-	if getHeadingType(linePtr) == 'normal':
-		childnumber = childnumber + 1
-		if isFirstChild(linePtr): 
-			childnumber = 1
-			level = level + 1
-			print subVars("Headings","before-headings")
-		if isParent(linePtr):
-			print subVars("Headings","branch-heading")
-			parents.append(linePtr)
-			linePtr = linePtr + 1
-			dprint("ho:",linePtr)
-			handleObjects()
-			dprint("/ho:",linePtr)
-			dprint("xl:",level)
-		else:
-			print subVars("Headings","leaf-heading")
-		dprint("lp:",linePtr,"ml:",level)
-		if isLastChild(linePtr,level): 
-			print subVars("Headings","after-headings")
-			level = level - 1
-			exitlevel = 1
-			childnumber = 1
-			dprint("lc")
-			if len(parents): parents.pop()
-	elif getHeadingType(linePtr) == 'bulleted':
-		v["%%"] = dashStrip(v["%%"])
-		childnumber = childnumber + 1
-		if isFirstChild(linePtr): 
-			childnumber = 1
-			level = level + 1
-			print subVars("Headings","before-bulleted-headings")
-		if isParent(linePtr):
-			print subVars("Headings","bulleted-branch-heading")
-			parents.append(linePtr)
-			linePtr = linePtr + 1
-			dprint("ho:",linePtr)
-			handleObjects()
-			dprint("xl:",level)
-		else:
-			print subVars("Headings","bulleted-leaf-heading")
-		dprint("lp:",linePtr,"ml:",level)
-		if isLastChild(linePtr,level): 
-			print subVars("Headings","after-bulleted-headings")
-			level = level - 1
-			exitlevel = 1
-			childnumber = 1
-			dprint("lc")
-			if len(parents): parents.pop()
-	elif getHeadingType(linePtr) == 'numbered':
-		v["%%"] = plusStrip(v["%%"])
-		childnumber = childnumber + 1
-		if isFirstChild(linePtr): 
-			childnumber = 1
-			level = level + 1
-			print subVars("Headings","before-numbered-headings")
-		if isParent(linePtr):
-			print subVars("Headings","numbered-branch-heading")
-			parents.append(linePtr)
-			linePtr = linePtr + 1
-			dprint("ho:",linePtr)
-			handleObjects()
-			dprint("xl:",level)
-		else:
-			print subVars("Headings","numbered-leaf-heading")
-		dprint("lp:",linePtr,"ml:",level)
-		if isLastChild(linePtr,level): 
-			print subVars("Headings","after-numbered-headings")
-			level = level - 1
-			exitlevel = 1
-			childnumber = 1
-			dprint("lc")
-			if len(parents): parents.pop()
-	else: 
-		print
-		print "Error: unknown heading type"
-		sys.exit(1)
+###########################################################################
+# outline object processing functions
 
-# handleText()
-# process a block of body text and output a converted version of it
-# input: globals
-# output: standard out
+# all outline object processors accept and output the following:
+# input: linenum, enum
+# output: print the output for each object
 
-def handleText():
+def handleHeading(linenum,enum):
+	global outline, parents
 
-	global linePtr, lines, level, v, text
-
-	v["%%"] = lfStrip(colonStrip(lstrip(rstrip(lines[linePtr],'\n'))))
-	
-	if isFirstTextLine(linePtr):
-		level = level + 1
-		text = subVars("Text","before-text")
-		v["%N"] = str(linePtr)
-	if lstrip(rstrip(lines[linePtr])) == ":":
-		text += subVars("Text","paragraph-sep")
+	v["%%"] = outline[linenum][0]
+	children = getChildren(linenum)
+	if enum == 1:
+		print subVars("Headings","before-headings",linenum,enum)
+	if children:
+		print subVars("Headings","branch-heading",linenum,enum)
+		parents.append([linenum,enum])
+		handleObjects(children)
+		parents.pop()
+		print subVars("Headings","after-headings",linenum,enum)
 	else:
-		text += subVars("Text","text")
-	if isLastTextLine(linePtr): 
-		text += subVars("Text","after-text")
-		print text
-		text = ""
-		level = level - 1
-		exitlevel = 1
+		print subVars("Headings","leaf-heading",linenum,enum)
 
-# isAlignRight
-# return flag
-# input: coldata, a string
+def handleBulleted(linenum,enum):
+	global outline, parents
 
-def isAlignRight(coldata):
-  l = len(coldata)
-  if (coldata[0:2] == "  ") and (coldata[l-2:l] != "  "): return 1
-  else: return 0
-
-# isAlignLeft
-# return flag
-# input: coldata, a string
-
-def isAlignLeft(coldata):
-  l = len(coldata)
-  if (coldata[0:2] != "  ") and (coldata[l-2:l] == "  "): return 1
-  else: return 0
-
-# isAlignCenter
-# return flag
-# input: coldata, a string
-
-def isAlignCenter(coldata):
-  l = len(coldata)
-  if (coldata[0:2] == "  ") and (coldata[l-2:l] == "  "): return 1
-  else: return 0
-
-# handleTableColumns
-# process a table row's columns and output the converted data
-# input: globals
-# output: standard out
-
-def handleTableRow():
-	
-	coldata = lstrip(rstrip(v["%%"]))
-	coldata = coldata.split("|")
-	print subVars("Tables","before-table-row")
-	for i in range(1,len(coldata)):
-		v["%%"] = lstrip(rstrip(coldata[i]))
-		if isAlignCenter(coldata[i]): print subVars("Tables","table-column-center")
-		elif isAlignRight(coldata[i]): print subVars("Tables","table-column-right")
-		elif isAlignLeft(coldata[i]): print subVars("Tables","table-column-left")
-		else:  print subVars("Tables","table-column")
-	print subVars("Tables","after-table-row")
-
-# handleTableHeaderColumns
-# process a table row's columns and output the converted data
-# input: globals
-# output: standard out
-
-def handleTableHeader():
-	
-	coldata = lstrip(rstrip(v["%%"]))
-	coldata = coldata.split("|")
-	print subVars("Tables","before-table-header")
-	for i in range(2,len(coldata)):
-		v["%%"] = lstrip(rstrip(coldata[i]))
-		if isAlignCenter(coldata[i]): print subVars("Tables","table-header-column-center")
-		elif isAlignRight(coldata[i]): print subVars("Tables","table-header-column-right")
-		elif isAlignLeft(coldata[i]): print subVars("Tables","table-header-column-left")
-		else:  print subVars("Tables","table-header-column")
-	print subVars("Tables","after-table-header")
-
-# handleTable()
-# process a table and output a converted version of it
-# input: globals
-# output: standard out
-
-def handleTable():
-
-	global linePtr, level, exitlevel, v
-
-	v["%%"] = lfStrip(semicolonStrip(lstrip(rstrip(lines[linePtr]))))
-
-	if isFirstTableLine(linePtr):
-		level = level + 1
-		print subVars("Tables","before-table")
-	if getTableType(linePtr) == "tableheader": 
-		handleTableHeader()
-	else: 
-		handleTableRow()
-	if isLastTableLine(linePtr): 
-		print subVars("Tables","after-table")
-		level = level - 1
-		exitlevel = 1
-
-# handlePrefText()
-# process a block of body text and output a converted version of it
-# input: globals
-# output: standard out
-
-def handlePrefText():
-
-	global linePtr, lines, level, v, text
-
-	v["%%"] = semicolonStrip(lstrip(lines[linePtr]))
-	
-	if isFirstPrefTextLine(linePtr):
-		level = level + 1
-		text = subVars("PrefText","before-preftext")
-	if lstrip(rstrip(lines[linePtr])) == ";":
-		text += subVars("PrefText","pref-paragraph-sep")
+	v["%%"] = outline[linenum][0]
+	children = getChildren(linenum)
+	if enum == 1:
+		print subVars("Headings","before-bulleted-headings",linenum,enum)
+	if children:
+		print subVars("Headings","branch-bulleted-heading",linenum,enum)
+		parents.append([linenum,enum])
+		handleObjects(children)
+		parents.pop()
+		print subVars("Headings","after-bulleted-headings",linenum,enum)
 	else:
-		text += subVars("PrefText","preftext")
-	if isLastPrefTextLine(linePtr): 
-		text += subVars("PrefText","after-preftext")
-		print text
-		text = ""
-		level = level - 1
-		exitlevel = 1
+		print subVars("Headings","leaf-bulleted-heading",linenum,enum)
 
-# handleUserText()
-# process a block of user text and output a converted version of it
-# input: globals
-# output: standard out
+def handleNumbered(linenum,enum):
+	global outline, parents
 
-def handleUserText():
-
-	global linePtr, lines, level, v, text
-
-	v["%%"] = lfStrip(greaterStrip(lstrip(rstrip(lines[linePtr],'\n'))))
-	
-	if isFirstUserTextLine(linePtr):
-		level = level + 1
-		text = subVars("UserText","before-user-text")
-	if lstrip(rstrip(lines[linePtr])) == ">":
-		text += subVars("UserText","user-paragraph-sep")
+	v["%%"] = outline[linenum][0]
+	children = getChildren(linenum)
+	if enum == 1:
+		print subVars("Headings","before-numbered-headings",linenum,enum)
+	if children:
+		print subVars("Headings","branch-numbered-heading",linenum,enum)
+		parents.append([linenum,enum])
+		handleObjects(children)
+		parents.pop()
+		print subVars("Headings","after-numbered-headings",linenum,enum)
 	else:
-		text += subVars("UserText","user-text")
-	if isLastUserTextLine(linePtr): 
-		text += subVars("UserText","after-user-text")
-		print text
-		level = level - 1
-		exitlevel = 1
+		print subVars("Headings","leaf-numbered-heading",linenum,enum)
 
-# handleUserPrefText()
-# process a block of body text and output a converted version of it
-# input: globals
-# output: standard out
+def handleText(linenum,enum):
+	global outline, parents
 
-def handleUserPrefText():
+	if enum == 1: # since we're working on a block, only execute once
+		list = getBlock(linenum,':')
+		print subVars("Text","before",linenum,enum)
+		lines = ""
+		for line in list:
+			if line == "":
+				lines = lines + config.get("Text","paragraph-sep")
+			else:
+				lines = lines + line + config.get("Text","line-sep")
+		v["%%"] = lines
+		print subVars("Text","text",linenum,enum),
+		print subVars("Text","after",linenum,enum)
 
-	global linePtr, lines, level, v, text
+def handleUserText(linenum,enum):
+	global outline, parents
+	# just a place keeper
+	print outline[linenum],enum
 
-	v["%%"] = lfStrip(lessStrip(lstrip(rstrip(lines[linePtr]))))
-	
-	if isFirstPrefTextLine(linePtr):
-		level = level + 1
-		text = subVars("UserPrefText","before-user-preftext")
-	if lstrip(rstrip(lines[linePtr])) == "<":
-		text += subVars("UserPrefText","user-pref-paragraph-sep")
-	else:
-		text += subVars("UserPrefText","user-preftext")
-	if isLastPrefTextLine(linePtr): 
-		text += subVars("UserPrefText","after-user-preftext")
-		print text
-		level = level - 1
-		exitlevel = 1
+def handlePrefText(linenum,enum):
+	global outline, parents
+
+	if enum == 1: # since we're working on a block, only execute once
+		list = getBlock(linenum,';')
+		print subVars("PrefText","before",linenum,enum)
+		lines = ""
+		for line in list:
+			if line == "":
+				lines = lines + config.get("PrefText","paragraph-sep")
+			else:
+				lines = lines + line + config.get("PrefText","line-sep")
+		v["%%"] = strip(lines) # remove a possible extra separator
+		print subVars("PrefText","text",linenum,enum),
+		print subVars("PrefText","after",linenum,enum)
+
+def handleUserPrefText(linenum,enum):
+	global outline, parents
+	# just a place keeper
+	print outline[linenum],enum
+
+def handleTable(linenum,enum):
+	global outline, parents
+	# just a place keeper
+	print outline[linenum],enum
 
 # addPreamble
 # create the 'header' for the output document
@@ -840,10 +386,10 @@ def handleUserPrefText():
 # output: standard out
 
 def addPreamble():
-	global linePtr, lines, level, v
+	global outline, v
 
 	v["%%"] = ""
-	print subVars("Document","preamble")
+	print subVars("Document","preamble",0,0)
 
 # addPostamble
 # create the 'header' for the output document
@@ -851,70 +397,95 @@ def addPreamble():
 # output: standard out
 
 def addPostamble():
-	global linePtr, lines, level, v
+	global outline, v
 
 	v["%%"] = ""
-	print subVars("Document","postamble")
+	print subVars("Document","postamble",0,0)
+
+
+###########################################################################
+# outline tree fuctions
 
 # handleObject
-# process an object and print the converted line(s)
-# input: linenum - current line pointer
-# output: standard out
+# take an object and invoke the appropriate fuction to precess it
+# input: linenum, enum (enum is the child order number of a parent)
+# output: print the output of a object
 
-def handleObject(linenum):
-	test = getLineType(linenum)
-	if   test == 'heading': handleHeading()
-	elif test == 'text': handleText()
-	elif test == 'usertext': handleUserText()
-	elif test == 'preftext': handlePrefText()
-	elif test == 'userpreftext': handleUserPrefText()
-	elif test == 'command': handleHeading()
-	elif test == 'table': handleTable()
+def handleObject(linenum,enum):
+	global outline, linecount
+
+	obj = getLineType(outline[linenum][0])
+	if   obj == 'heading': handleHeading(linenum,enum)
+	elif obj == 'bulled': handleBulleted(linenum,enum)
+	elif obj == 'numbered': handleNumbered(linenum,enum)
+	elif obj == 'text': handleText(linenum,enum)
+	elif obj == 'usertext': handleUserText(linenum,enum)
+	elif obj == 'preftext': handlePrefText(linenum,enum)
+	elif obj == 'userpreftext': handleUserPrefText(linenum,enum)
+	elif obj == 'command': handleHeading(linenum,enum)
+	elif obj == 'table': handleTable(linenum,enum)
 	else:
 		print
-		print "Error: unknown line type"
+		print "Error: unknown line type @ ",linenum
 		sys.exit(1)
 
 # handleObjects
-# process a list of objects
-# input: linenum - current line pointer
-# output: standard out
-# This is recursive. handleObject can call handleObjects.
+# take an object list and invoke the appropriate fuctions to precess it
+# input: linenum
+# output: print the output of a object
 
-def handleObjects():
-	global lines, linePtr, level, exitlevel
-	
-	exitlevel = 0
-	while (linePtr < len(lines)) and (exitlevel == 0):
-		handleObject(linePtr)
-		linePtr = linePtr + 1
-	linePtr = linePtr - 1	# adjust for the unwanted post-increment
-				# after the last line
-	exitlevel = 0
-	dprint("/ho")
+def handleObjects(objs):
+
+	for i in range(len(objs)):
+		handleObject(objs[i],i+1)
+
+###########################################################################
+# file functions
+
+# readFile
+# read the selected file into lines[]
+# input: filename to be loaded
+# output: a loaded-up lines[]
+
+def readFile(inputfile):
+	global outline, linecount, config
+	lasttype = ""
+	file = open(inputfile,"r")
+	linein = file.readline()
+
+	while linein != "":
+		indent = indentLevel(linein)
+		line = strip(linein)
+		outline.append([line,indent])
+		linein = file.readline()
+
+	file.close
+
+	outline[0][1] = 0	# set the first line to level 0
+
+	linecount = len(outline)
 
 ###########################################################################
 # Main Program Loop
 
 def main():
-	global inputfile, lines, debug, v, linePtr, parents
+#	global inputfile, lines, debug, v, linePtr, parents
+	global outline, inputfile, linecount
 	getArgs()
-	if (debug !=0): printConfig()
-	initVariables()
+
+#	if (debug !=0): printConfig()
+#	initVariables()
+#
 	readFile(inputfile)
-	v["%t"] = lfStrip(lines[0])		# get the title
-	if config.get("Document","first-is-node") == "true":
-		parents.append(linePtr)
-		linePtr = 1
-	else:
-		linePtr = 1
-
+	v["%t"] = strip(outline[0][0])		# get the title
 	addPreamble()
-
-	handleObjects()
-		
-#	if config.get("Document","first-is-node") == "true":
-#		print subVars("Headings","after-headings")
+	if config.get("Document","first-is-node") == "true":
+		objs=[0]
+	else:
+		objs=getChildren(0)
+	handleObjects(objs)
 	addPostamble()
+
+
 
 main()
