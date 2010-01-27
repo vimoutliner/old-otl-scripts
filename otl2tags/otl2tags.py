@@ -6,8 +6,8 @@
 #
 # Copyright (c) 2005-2010 Noel Henson All rights reserved
 #
-# $Revision: 1.10 $
-# $Date: 2010/01/26 07:07:37 $
+# $Revision: 1.11 $
+# $Date: 2010/01/26 21:04:45 $
 # $Author: noel $
 # $Source: /home/noel/active/otl2tags/RCS/otl2tags.py,v $
 # $Locker: noel $
@@ -22,6 +22,10 @@
 # Change Log
 #
 #	$Log: otl2tags.py,v $
+#	Revision 1.11  2010/01/26 21:04:45  noel
+#	Fixed a few bugs concering blocks.
+#	Added support for the other objects including tables.
+#
 #	Revision 1.10  2010/01/26 07:07:37  noel
 #	Major restructuring and refactoring.
 #	Not quite ready yet; only a few objects implemented.
@@ -118,8 +122,8 @@ def showUsage():
 def showVersion():
 	 print
 	 print "RCS"
-	 print " $Revision: 1.10 $"
-	 print " $Date: 2010/01/26 07:07:37 $"
+	 print " $Revision: 1.11 $"
+	 print " $Date: 2010/01/26 21:04:45 $"
 	 print " $Author: noel $"
 	 print " $Source: /home/noel/active/otl2tags/RCS/otl2tags.py,v $"
 	 print
@@ -638,7 +642,5 @@ def main():
 		objs=getChildren(0)
 	handleObjects(objs)
 	addPostamble()
-
-	print getUnstrippedBlock(25,"|")
 
 main()
