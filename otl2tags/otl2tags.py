@@ -6,8 +6,8 @@
 #
 # Copyright (c) 2005-2010 Noel Henson All rights reserved
 #
-# $Revision: 1.11 $
-# $Date: 2010/01/26 21:04:45 $
+# $Revision: 1.12 $
+# $Date: 2010/01/27 20:10:10 $
 # $Author: noel $
 # $Source: /home/noel/active/otl2tags/RCS/otl2tags.py,v $
 # $Locker: noel $
@@ -22,6 +22,9 @@
 # Change Log
 #
 #	$Log: otl2tags.py,v $
+#	Revision 1.12  2010/01/27 20:10:10  noel
+#	Removed a debug print.
+#
 #	Revision 1.11  2010/01/26 21:04:45  noel
 #	Fixed a few bugs concering blocks.
 #	Added support for the other objects including tables.
@@ -122,8 +125,8 @@ def showUsage():
 def showVersion():
 	 print
 	 print "RCS"
-	 print " $Revision: 1.11 $"
-	 print " $Date: 2010/01/26 21:04:45 $"
+	 print " $Revision: 1.12 $"
+	 print " $Date: 2010/01/27 20:10:10 $"
 	 print " $Author: noel $"
 	 print " $Source: /home/noel/active/otl2tags/RCS/otl2tags.py,v $"
 	 print
@@ -296,6 +299,29 @@ def getUnstrippedBlock(linenum,marker):
 		if linenum == linecount: break	
 		line = outline[linenum][0]
 	return lines
+
+###########################################################################
+# embedded object processing functions
+
+# handleLinks
+# if there is a link to an image or another page, process it
+# input: line
+# output: modified line
+
+def handleLinks(line):
+#  line = sub('\[(\S+?)\]','<img src="\\1" alt="\\1">',line)
+#  line = sub('\[(\S+)\s(.*?)\]','<a href="\\1">\\2</a>',line)
+#  line = sub('(<a href=")\+(.*)"\>','\\1\\2" target=_new>',line)
+#  line = replace(line,'<img src="X" alt="X">','[X]')
+#  line = replace(line,'<img src="_" alt="_">','[_]')
+#  line = replace(line,'<img src="-" alt="-">','[-]')
+
+	links = findall('\[(\S+)\s(.*?)\]',line)
+	for link in links:
+		target,text = lstrip(rstrip(link,"]"),"[").split(" ")
+
+		target = lstrip(rstrip(link,"]"),"[").strip()
+	return line
 
 ###########################################################################
 # outline header processing functions
