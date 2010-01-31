@@ -6,8 +6,8 @@
 #
 # Copyright (c) 2005-2010 Noel Henson All rights reserved
 #
-# $Revision: 1.12 $
-# $Date: 2010/01/27 20:10:10 $
+# $Revision: 1.13 $
+# $Date: 2010/01/28 07:20:02 $
 # $Author: noel $
 # $Source: /home/noel/active/otl2tags/RCS/otl2tags.py,v $
 # $Locker: noel $
@@ -22,6 +22,9 @@
 # Change Log
 #
 #	$Log: otl2tags.py,v $
+#	Revision 1.13  2010/01/28 07:20:02  noel
+#	Started adding support for embedded objects like links and images.
+#
 #	Revision 1.12  2010/01/27 20:10:10  noel
 #	Removed a debug print.
 #
@@ -82,10 +85,12 @@ from re import *
 # global variables
 
 config = ConfigParser()	# configuration
-outline = []		# line tuples (value,indent)
 linecount = 0		# outline size in lines
 parents = []		# parent stack, (linenum,enum) enum is an order numer
 v = {}			# variable dictionary for substitution
+outline = []		# line tuples (value,indent)
+output = []		# output outline
+escapeDict = {}		# dictionary of character escape codes
 
 ###########################################################################
 # arugment, help and debug functions
@@ -125,8 +130,8 @@ def showUsage():
 def showVersion():
 	 print
 	 print "RCS"
-	 print " $Revision: 1.12 $"
-	 print " $Date: 2010/01/27 20:10:10 $"
+	 print " $Revision: 1.13 $"
+	 print " $Date: 2010/01/28 07:20:02 $"
 	 print " $Author: noel $"
 	 print " $Source: /home/noel/active/otl2tags/RCS/otl2tags.py,v $"
 	 print
@@ -243,14 +248,14 @@ def getChildren(linenum):
 		linenum = linenum + 1
 	return children
 
-# subVars
+# subTags
 # substitute variables in output expressions
 # input: section - section from config
 # input: type - object type (to look up in config)
 # input:  - substitution item (by name) from config array
 # output: string - the substitution expression with variables inserted
 
-def subVars(section,type):
+def subTags(section,type):
 	global config, v, parents
 
 	varlist = v.keys()
@@ -303,24 +308,64 @@ def getUnstrippedBlock(linenum,marker):
 ###########################################################################
 # embedded object processing functions
 
-# handleLinks
-# if there is a link to an image or another page, process it
+# buildEscapes
+# construct the dictionary for escaping special characters
+# intput: config:escapes
+# output: filled escapes dictionary
+
+def buildEscapes():
+	escapes = config.get("Document","escapes")
+	list = escapes.split(" ")
+	if len(list):
+		for pair in list:
+			key,value = pair.split(",")
+			escapeDict[key]=value
+
+# charEscape
+# escape special characters
 # input: line
 # output: modified line
+def charEscape(line):
+	return "".join(escapeDict.get(c,c) for c in line)
 
-def handleLinks(line):
-#  line = sub('\[(\S+?)\]','<img src="\\1" alt="\\1">',line)
-#  line = sub('\[(\S+)\s(.*?)\]','<a href="\\1">\\2</a>',line)
-#  line = sub('(<a href=")\+(.*)"\>','\\1\\2" target=_new>',line)
-#  line = replace(line,'<img src="X" alt="X">','[X]')
-#  line = replace(line,'<img src="_" alt="_">','[_]')
-#  line = replace(line,'<img src="-" alt="-">','[-]')
+# getURL
+# if there is a url, [url text], return the extracted link, url and value
+# input: line
+# output: link,url,text
 
-	links = findall('\[(\S+)\s(.*?)\]',line)
-	for link in links:
-		target,text = lstrip(rstrip(link,"]"),"[").split(" ")
+def getURL(line):
+	tags = []
+	for tag in line.split("]"):
+		tags.append(tag.split("["))
+	
+	for tag in tags: 
+		if len(tag) > 1 and search(" ",tag[1]):
+			link = tag[1]
 
-		target = lstrip(rstrip(link,"]"),"[").strip()
+			url,text = link.split(" ",1)
+			link = "["+tag[1]+"]"
+			return link,url,text
+
+
+#		return link.group(0),url,text
+#	else:
+#		return None,None,None
+	return None,None,None
+
+def handleURL(line):
+	link,url,text = getURL(line)
+	if link == None: return replace(line,"[url]","")
+
+
+	v["%u"] = url
+	v["%v"] = text
+
+	text = subTags("URLs","url")
+	line = replace(line,link,text)
+
+	url = subTags("URLs","url-attr")
+	line = replace(line,"[url]",url)
+
 	return line
 
 ###########################################################################
@@ -333,21 +378,29 @@ def handleLinks(line):
 def handleHeading(linenum,enum):
 	global outline, parents
 
-	v["%%"] = outline[linenum][0]
+	line = outline[linenum][0]
+
+# url handling
+# extract url data from line
+# replace url object in line
+# subTags line
+# replace url attribute marker
+
+	v["%%"] = line
 	v["%l"] = str(outline[linenum][1])
 	v["%n"] = str(linenum)
 	v["%c"] = str(enum)
 	children = getChildren(linenum)
 	if enum == 1:
-		print subVars("Headings","before-headings")
+		output.append(subTags("Headings","before-headings"))
 	if children:
-		print subVars("Headings","branch-heading")
+		output.append(subTags("Headings","branch-heading"))
 		parents.append([linenum,enum])
 		handleObjects(children)
 		parents.pop()
-		print subVars("Headings","after-headings")
+		output.append(subTags("Headings","after-headings"))
 	else:
-		print subVars("Headings","leaf-heading")
+		output.append(subTags("Headings","leaf-heading"))
 
 def handleBulleted(linenum,enum):
 	global outline, parents
@@ -358,15 +411,15 @@ def handleBulleted(linenum,enum):
 	v["%c"] = str(enum)
 	children = getChildren(linenum)
 	if enum == 1:
-		print subVars("Headings","before-bulleted-headings")
+		output.append(subTags("Headings","before-bulleted-headings"))
 	if children:
-		print subVars("Headings","bulleted-branch-heading")
+		output.append(subTags("Headings","bulleted-branch-heading"))
 		parents.append([linenum,enum])
 		handleObjects(children)
 		parents.pop()
-		print subVars("Headings","after-bulleted-headings")
+		output.append(subTags("Headings","after-bulleted-headings"))
 	else:
-		print subVars("Headings","bulleted-leaf-heading")
+		output.append(subTags("Headings","bulleted-leaf-heading"))
 
 def handleNumbered(linenum,enum):
 	global outline, parents
@@ -377,15 +430,15 @@ def handleNumbered(linenum,enum):
 	v["%c"] = str(enum)
 	children = getChildren(linenum)
 	if enum == 1:
-		print subVars("Headings","before-numbered-headings")
+		output.append(subTags("Headings","before-numbered-headings"))
 	if children:
-		print subVars("Headings","numbered-branch-heading")
+		output.append(subTags("Headings","numbered-branch-heading"))
 		parents.append([linenum,enum])
 		handleObjects(children)
 		parents.pop()
-		print subVars("Headings","after-numbered-headings")
+		output.append(subTags("Headings","after-numbered-headings"))
 	else:
-		print subVars("Headings","numbered-leaf-heading")
+		output.append(subTags("Headings","numbered-leaf-heading"))
 
 ###########################################################################
 # outline text block processing functions
@@ -403,7 +456,7 @@ def handleText(linenum,enum):
 	v["%n"] = str(linenum)
 	v["%c"] = str(enum)
 	list = getBlock(linenum,':')
-	print subVars("Text","before")
+	output.append(subTags("Text","before"))
 	lines = ""
 	for line in list:
 		if line == "":
@@ -411,8 +464,8 @@ def handleText(linenum,enum):
 		else:
 			lines = lines + line + config.get("Text","line-sep")
 	v["%%"] = lines
-	print subVars("Text","text"),
-	print subVars("Text","after")
+	output.append(subTags("Text","text"))
+	output.append(subTags("Text","after"))
 
 def handleUserText(linenum,enum):
 	global outline, parents
@@ -423,7 +476,7 @@ def handleUserText(linenum,enum):
 	v["%n"] = str(linenum)
 	v["%c"] = str(enum)
 	list = getBlock(linenum,'>')
-	print subVars("UserText","before")
+	output.append(subTags("UserText","before"))
 	lines = ""
 	for line in list:
 		if line == "":
@@ -431,8 +484,8 @@ def handleUserText(linenum,enum):
 		else:
 			lines = lines + line + config.get("UserText","line-sep")
 	v["%%"] = strip(lines) # remove a possible extra separator
-	print subVars("UserText","text"),
-	print subVars("UserText","after")
+	output.append(subTags("UserText","text"))
+	output.append(subTags("UserText","after"))
 
 def handlePrefText(linenum,enum):
 	global outline, parents
@@ -443,7 +496,7 @@ def handlePrefText(linenum,enum):
 	v["%n"] = str(linenum)
 	v["%c"] = str(enum)
 	list = getBlock(linenum,';')
-	print subVars("PrefText","before")
+	output.append(subTags("PrefText","before"))
 	lines = ""
 	for line in list:
 		if line == "":
@@ -451,8 +504,8 @@ def handlePrefText(linenum,enum):
 		else:
 			lines = lines + line + config.get("PrefText","line-sep")
 	v["%%"] = strip(lines) # remove a possible extra separator
-	print subVars("PrefText","text"),
-	print subVars("PrefText","after")
+	output.append(subTags("PrefText","text"))
+	output.append(subTags("PrefText","after"))
 
 def handleUserPrefText(linenum,enum):
 	global outline, parents
@@ -463,7 +516,7 @@ def handleUserPrefText(linenum,enum):
 	v["%n"] = str(linenum)
 	v["%c"] = str(enum)
 	list = getBlock(linenum,'<')
-	print subVars("UserPrefText","before")
+	output.append(subTags("UserPrefText","before"))
 	lines = ""
 	for line in list:
 		if line == "":
@@ -471,8 +524,8 @@ def handleUserPrefText(linenum,enum):
 		else:
 			lines = lines + line + config.get("UserPrefText","line-sep")
 	v["%%"] = strip(lines) # remove a possible extra separator
-	print subVars("UserPrefText","text"),
-	print subVars("UserPrefText","after")
+	output.append(subTags("UserPrefText","text"))
+	output.append(subTags("UserPrefText","after"))
 
 ###########################################################################
 # outline table processing functions
@@ -514,14 +567,14 @@ def handleHeaderRow(row):
 
 	row = lstrip(rstrip(row,"|"),"|")
 	columns = row.split("|")
-	print subVars("Tables","before-table-header")
+	output.append(subTags("Tables","before-table-header"))
 	for col in columns:
 		v["%%"] = strip(col)
-		if isAlignCenter: print subVars("Tables","table-header-column-center")
-		elif isAlignCenter: print subVars("Tables","table-header-column-center")
-		elif isAlignCenter: print subVars("Tables","table-header-column-center")
-		else: print subVars("Tables","table-header-column")
-	print subVars("Tables","after-table-header")
+		if isAlignCenter: output.append(subTags("Tables","table-header-column-center"))
+		elif isAlignCenter: output.append(subTags("Tables","table-header-column-center"))
+		elif isAlignCenter: output.append(subTags("Tables","table-header-column-center"))
+		else: output.append(subTags("Tables","table-header-column"))
+	output.append(subTags("Tables","after-table-header"))
 
 # handleRow
 # process a non-header table row
@@ -536,14 +589,14 @@ def handleRow(row):
 		return
 	row = lstrip(rstrip(row,"|"),"|")
 	columns = row.split("|")
-	print subVars("Tables","before-table-row")
+	output.append(subTags("Tables","before-table-row"))
 	for col in columns:
 		v["%%"] = strip(col)
-		if isAlignCenter: print subVars("Tables","table-column-center")
-		elif isAlignLeft: print subVars("Tables","table-column-left")
-		elif isAlignRight: print subVars("Tables","table-column-right")
-		else: print subVars("Tables","table-column")
-	print subVars("Tables","after-table-row")
+		if isAlignCenter: output.append(subTags("Tables","table-column-center"))
+		elif isAlignLeft: output.append(subTags("Tables","table-column-left"))
+		elif isAlignRight: output.append(subTags("Tables","table-column-right"))
+		else: output.append(subTags("Tables","table-column"))
+	output.append(subTags("Tables","after-table-row"))
 
 # handleTable
 # process a table
@@ -559,10 +612,10 @@ def handleTable(linenum,enum):
 	v["%n"] = str(linenum)
 	v["%c"] = str(enum)
 	list = getUnstrippedBlock(linenum,'|')
-	print subVars("Tables","before")
+	output.append(subTags("Tables","before"))
 	for row in list:
 		handleRow(row)
-	print subVars("Tables","after")
+	output.append(subTags("Tables","after"))
 
 ###########################################################################
 # outline wrapper processing functions
@@ -576,7 +629,7 @@ def addPreamble():
 	global outline, v
 
 	v["%%"] = ""
-	print subVars("Document","preamble")
+	output.append(subTags("Document","preamble"))
 
 # addPostamble
 # create the 'header' for the output document
@@ -587,7 +640,7 @@ def addPostamble():
 	global outline, v
 
 	v["%%"] = ""
-	print subVars("Document","postamble")
+	output.append(subTags("Document","postamble"))
 
 
 ###########################################################################
@@ -642,6 +695,7 @@ def readFile(inputfile):
 	while linein != "":
 		indent = indentLevel(linein)
 		line = strip(linein)
+		line = charEscape(line)
 		outline.append([line,indent])
 		linein = file.readline()
 
@@ -655,12 +709,23 @@ def readFile(inputfile):
 # Main Program Loop
 
 def main():
-#	global inputfile, lines, debug, v, linePtr, parents
 	global outline, inputfile, linecount
+
+	# get the arguments
 	getArgs()
 
+	# constuct the escapes dictionary
+	buildEscapes()
+
+	# read the input file
 	readFile(inputfile)
-	v["%t"] = strip(outline[0][0])		# get the title
+	
+	# get the title
+	v["%t"] = strip(outline[0][0])
+
+	# construct the initial data
+	# parsing headings, text and tables
+	# but not parsing links or images
 	addPreamble()
 	if config.get("Document","first-is-node") == "true":
 		objs=[0]
@@ -668,5 +733,14 @@ def main():
 		objs=getChildren(0)
 	handleObjects(objs)
 	addPostamble()
+
+	# handle embeded objects
+	# parsing and constructing links, images and other embedded objects
+	for i in range(len(output)):	
+		output[i]=handleURL(output[i])
+
+	# output the final data
+	for line in output:
+		if line.strip()!="": print line.strip()
 
 main()
