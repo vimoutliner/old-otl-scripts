@@ -6,8 +6,8 @@
 #
 # Copyright (c) 2005-2010 Noel Henson All rights reserved
 #
-# $Revision: 1.13 $
-# $Date: 2010/01/28 07:20:02 $
+# $Revision: 1.14 $
+# $Date: 2010/01/31 06:37:41 $
 # $Author: noel $
 # $Source: /home/noel/active/otl2tags/RCS/otl2tags.py,v $
 # $Locker: noel $
@@ -22,6 +22,13 @@
 # Change Log
 #
 #	$Log: otl2tags.py,v $
+#	Revision 1.14  2010/01/31 06:37:41  noel
+#	Added character escapes.
+#	Added single-URL embedding.
+#	TODO:
+#	Add image handling
+#	Add multiple URLs per line (if not using url-attr)
+#
 #	Revision 1.13  2010/01/28 07:20:02  noel
 #	Started adding support for embedded objects like links and images.
 #
@@ -130,8 +137,8 @@ def showUsage():
 def showVersion():
 	 print
 	 print "RCS"
-	 print " $Revision: 1.13 $"
-	 print " $Date: 2010/01/28 07:20:02 $"
+	 print " $Revision: 1.14 $"
+	 print " $Date: 2010/01/31 06:37:41 $"
 	 print " $Author: noel $"
 	 print " $Source: /home/noel/active/otl2tags/RCS/otl2tags.py,v $"
 	 print
@@ -315,8 +322,8 @@ def getUnstrippedBlock(linenum,marker):
 
 def buildEscapes():
 	escapes = config.get("Document","escapes")
-	list = escapes.split(" ")
-	if len(list):
+	if len(escapes):
+		list = escapes.split(" ")
 		for pair in list:
 			key,value = pair.split(",")
 			escapeDict[key]=value
