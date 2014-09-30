@@ -1,0 +1,24 @@
+Test Projects
+Projects
+	[_] 33% Lister
+		[_] 0% Review documentation
+			Jean
+			Dale
+		[X] 100% Create test data set
+			Larry
+		[_] 0% Test program
+			Spike
+	[_] 50% Reporter
+		[X] 100% Write initial program
+			Jean
+		[_] 0% Write initial documentation
+			Spike
+	[X] 100% Reporter1
+		[X] 100% Write initial program
+			Larry
+		[X] 100% Write initial documentation
+			Jean
+Other Stuff
+	blah
+	blah blah
+	blah blah blah
