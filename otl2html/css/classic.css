@@ -1,0 +1,44 @@
+body { <--! copyright notice and filename -->
+        font-family: helvetica,arial,sans-serif;
+        font-size: small;
+}
+H1 { <!-- title at the top of the page -->
+        font-family: helvetica,arial,sans-serif;
+        font-size: X-large;
+        font-weight: bold;
+        text-align: center;
+        color: black;
+}
+OL { <!-- outline level spacing -->
+        padding-bottom: 10pt;
+}
+LI { <!-- global heading settings -->
+        font-family: helvetica,arial,sans-serif;
+        color: black;
+        font-weight: normal;
+        list-style: lower-alpha;
+}
+LI.L1 { <!-- level 1 heading overrides -->
+        font-size: X-large;
+        font-weight: bold;
+        list-style: upper-roman;
+}
+LI.L2 { <!-- level 2 heading overrides -->
+        font-size: large;
+        font-weight: bold;
+        list-style: decimal;
+}
+LI.L3 { <!-- level 3 heading overrides -->
+        font-size: medium;
+        list-style: upper-alpha;
+}
+LI.L4 { <!-- level 4 heading overrides -->
+        font-size: medium;
+        list-style: lower-roman;
+}
+P { <--! body text -->
+        font-family: helvetica,arial,sans-serif;
+        font-size: small;
+        font-weight: normal;
+        color: darkgreen;
+}
