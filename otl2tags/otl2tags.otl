@@ -1,0 +1,86 @@
+OTL2TAGS
+Configuration Functions
+	level depth for chapters
+	level depth for pages
+	level depth for contents
+	level depth for index
+	level for divisions (or sections) on a page
+	heading regex
+	text regex
+	preformatted text regex
+	user text regex
+	table regex
+	table header regex
+	index template
+	page template
+	contents template
+	word index template
+Variables
+	perhaps there should be date, time and copywrite variables
+	%l	level (depth)
+	%%	object data (the text of the object)
+	%i	current list (numbered bullet) counter
+	%j	current parent's list (numbered bullet) counter
+	%k	current grandparent's list (numbered bullet) counter
+	%l	current great-grandparent's list (numbered bullet) counter
+	%m	current great, great-grandparent's list (numbered bullet) counter
+	%n	line number
+	%ri	current relative list (numbered bullet) counter
+	%rj	current parent's relative list (numbered bullet) counter
+	%rk	current grandparent's relative list (numbered bullet) counter
+	%rl	current great-grandparent's relative list (numbered bullet) counter
+	%rm	current great, great-grandparent's relative list (numbered bullet) counter
+	%t	title
+Regex Entities
+	Document
+		doc-header
+		title
+		before-body
+		after-body
+		doc-footer
+	Text
+		before-text
+		text
+		after-text
+		paragraph-sep
+	Headings
+		before-headings
+		heading
+		after-headings
+	Bullets
+		before-bullet-headings
+		bullet-heading
+		after-bullet-headings
+	Numbered
+		before-numbered-headings
+		numbered-heading
+		after-numbered-headings
+	Tables
+		before-table
+		after-table
+		before-table-header
+		table-header-column
+		table-header-column-leftalign
+		table-header-column-centered
+		table-header-column-rightalign
+		after-table-header
+		before-table-row
+		table-column
+		table-column-leftalign
+		table-column-centered
+		table-column-rightalign
+		after-table-row
+	Images
+		before-image
+		image
+		after-image
+	Links
+		before-link
+		link
+		after-link
+Scoping
+	Some variables and flags must be scoped
+		: There are instances where flags or variables set at certain levels 
+		: will need to be ignored by higher-priority (lower-numbered) levels. 
+		: This will especially be true for values set by directives instead of 
+		: the config file.
