@@ -1,0 +1,784 @@
+Minimus Spine MS-1000 System
+Basic Process
+	Cycle Pre-test
+		Check for lid closed
+			Method
+				Check state of lid switch
+			Success
+				Detection of lid closure
+			Failure modes
+				Lid not closed
+					Soft failure
+						Abort process
+					Control
+						Notify operator
+		Check for syringe
+			Method
+				Check state of syringe switch
+			Success
+				Detection of syringe
+			Failure modes
+				Syringe not detected
+					Soft failure
+						Abort process
+					Control
+						Notify operator
+		Verify UV LED and sensor
+			Method
+				Cycle LED output
+				Monitor UV input
+			Failure modes
+				UV LED not detected
+					Hard failure
+						Abort process
+						Log failure
+						Notify operator
+					Control
+						UV input levels
+		Verify blue LED and sensor
+			Method
+				Cycle LED output
+				Monitor blue input
+			Failure modes
+				Blue LED not detected
+					Hard failure
+						Abort process
+						Log failure
+						Notify operator
+					Control
+						Blue input levels
+	Concentrate Oxygen
+		Evacuate zeolite
+			Method
+				Select mode 1 (Evacuate Zeolite)
+				Monitor time and vacuum
+			Failure modes
+				Improper vaccum
+					Hard failure
+						Abort process
+						Log failure
+						Notify operator
+					Control
+						Vacuum limit not reached in time
+		Evacuate syringe
+			Method
+				Select mode 2 (Evacuate Zeolite and syringe)
+				Monitor time and vacuum
+			Failure modes
+				Improper vaccum
+					Soft failure
+						Abort process
+						Notify operator to check/replace syringe
+					Control
+						Vacuum limit not reached in time
+		Pressurize zeolite
+			Method
+				Select mode 3 (Pressurize Zeolite)
+				Monitor time and pressure
+				Monitor humidity
+			Failure modes
+				Improper pressure
+					Hard failure
+						Abort process
+						Log failure
+						Notify operator
+					Control
+						Pressure limit not reached in time
+				Improper humidity
+					Hard failure
+						Abort process
+						Log failure
+						Notify operator
+					Control
+						Humidiy too high
+		Pause for Adsorption
+			Method
+				Select mode 4 (Oxygen Hold)
+				Wait for set time and monitor pressure
+			Failure modes
+				Improper pressure
+					Hard failure
+						Abort process
+						Log failure
+						Notify operator
+					Control
+						Pressure not within limits
+	Fill Syringe
+		Pre-fill syringe (to purge parasitic spaces)
+			Method
+				Select mode 5 (Fill Syringe 1) for fixed time
+				Monitor time and UV sensor
+			Failure modes
+				Syringe did not fill properly
+					Soft failure
+						Abort process
+						Notify operator to check/replace syringe
+					Control
+						Monitor UV sensor and time
+						Zeolite pressure after fill
+		Re-evacuate syringe (to purge parasitic spaces)
+			Method
+				Select mode 6 (Purge Syringe)
+				Monitor time and vacuum
+			Failure modes
+				Improper vaccum
+					Soft failure
+						Abort process
+						Notify operator to check/replace syringe
+					Control
+						Vacuum limit not reached in time
+		Fill syringe
+			Method
+				Select mode 7 (Fill Syringe 2)
+				Monitor time and UV sensor
+			Failure modes
+				Syringe did not fill properly
+					Soft failure
+						Abort process
+						Notify operator to check/replace syringe
+					Control
+						Monitor UV sensor and time
+						Zeolite pressure after fill
+		Vent waste gasses
+			Method
+				Select mode 8 (Vent Excess Gasses)
+				Monitor pressure and time
+			Failure modes
+				Zeolite does not depressurize properly
+					Hard failure
+						Abort process
+						Log failure
+						Notify operator to check/replace syringe
+					Control
+						Pressure limit not reached in time
+		Equalize syringe pressure
+			Method
+				Select mode 9 (Equlize Syringe Pressure)
+				Monitor pressure and time
+				Sample blue light transmissivity for later use
+			Failure modes
+				Syringe pressure not equalized
+					Soft failure
+						Abort process
+						Replace syringe
+						Notify operator 
+					Control
+						Pressure limit not reached in time
+		Seal pneumatic system
+			Method
+				Select mode 0 (All Off)
+			Failure modes
+				None
+	Generate Ozone
+		Ionize oxygen
+			Method
+				Adjust LED current for maximum gain
+				Turn on ionizer
+			Failure modes
+				Improper ionization
+					Soft failure
+						Abort process
+						Notify operator to replace syringe
+					Control
+						Monitor UV sensor and time
+		Check for NO2
+			Method
+				Measure change in blue light transmissivity
+			Failure modes
+				Detectable NO2
+					Soft failure
+						Abort process
+						Notify operator to replace syringe
+					Control
+						Monitor blue light sensor
+		Ozone usage timer
+			Method
+				Show on-screen timer to warn about ozone usage/decay
+			Failure modes
+				Ozone not administered in time
+					Soft failure
+						Abort process
+						Alert operator
+					Control
+						Monitor time
+				Device not notified of ozone use
+					Soft failure
+						Abort process
+						Alert operator
+					Control
+						Monitor time
+Firmware
+	[X] 100% Prototype
+		[X] 100% Drivers
+			[X] 100% LCD
+				[X] 100% LCD control
+					[X] 100% brightness
+					[X] 100% backlight-off
+					[X] 100% backlight-on
+					[X] 100% cls
+					[X] 100% restorexy
+					[X] 100% savexy
+					[X] 100% setxy
+					[X] 100% setbgcolor
+					[X] 100% setcolor
+				[X] 100% text printing
+					[X] 100% lcdtype
+					[X] 100% lcdbgtype
+					[X] 100% lcdcrlf
+					[X] 100% lcdcr
+					[X] 100% lcd-terminal
+					[X] 100% clf
+					[X] 100% selectfont
+					[X] 100% textnorth
+					[X] 100% texteast
+					[X] 100% textsouth
+					[X] 100% textwest
+				[X] 100% graphics functions
+					[X] 100% arc
+					[X] 100% box
+					[X] 100% filled-box
+					[X] 100% circle
+					[X] 100% filled-circle
+					[X] 100% hline
+					[X] 100% lineto
+					[X] 100% pie
+					[X] 100% plot
+					[X] 100% plotxy
+					[X] 100% putsficon
+					[X] 100% vline
+				[X] 100% button function
+					[X] 100% anybutton?
+					[X] 100% button
+					[X] 100% buttondef
+					[X] 100% buttonstate
+					[X] 100% buttonsallup
+					[X] 100% buttonsdeleteall
+					[X] 100% touchprotocol
+			[X] 100% HV source
+				[X] 100% control
+			[X] 100% UV source
+				[X] 100% control
+			[X] 100% UV sensor
+				[X] 100% filtering
+				[X] 100% logging
+				[X] 100% scaling
+			[X] 100% pressure sensor
+				[X] 100% filtering
+				[X] 100% logging
+				[X] 100% scaling
+			[X] 100% vacuum sensor
+				[X] 100% filtering
+				[X] 100% logging
+				[X] 100% scaling
+			[X] 100% lid closure
+				[X] 100% detection
+			[X] 100% syringe detection
+				[X] 100% detection
+			[X] 100% Beeper
+				[X] 100% chirp
+				[X] 100% error beep
+			[X] 100% ADC
+				[X] 100% ADC IC interface
+				[X] 100% getsample
+				[X] 100% filtersample
+			[-] 33% Thumb drive
+				[X] 100% Vinculum serial driver
+				[_] 0% Logging
+				[_] 0% Firmware upgrade
+			[X] 100% Device log
+				[X] 100% logging
+				[X] 100% formatting
+				[X] 100% log rotation
+		[X] 100% Application
+			[X] 100% Screens
+				[X] 100% Startup
+				[X] 100% Oxygen Cycle
+					[X] 100% Evacuation
+					[X] 100% Oxygen Concentration
+					[X] 100% Fill Syringe
+				[X] 100% Ozone Cycle
+					[X] 100% Ionize Oxygen
+					[X] 100% Ozone Decay
+	[_] 56% Firmware Version 2
+		[_] 65% Drivers
+			[_] 62% LCD
+				[X] 100% LCD control
+					[X] 100% brightness
+					[X] 100% backlight-off
+					[X] 100% backlight-on
+					[X] 100% cls
+					[X] 100% restorexy
+					[X] 100% savexy
+					[X] 100% setxy
+					[X] 100% setbgcolor
+					[X] 100% setcolor
+				[X] 100% text printing
+					[X] 100% lcdtype
+					[X] 100% lcdbgtype
+					[X] 100% lcdcrlf
+					[X] 100% lcdcr
+					[X] 100% lcd-terminal
+					[X] 100% clf
+					[X] 100% selectfont
+					[X] 100% textnorth
+					[X] 100% texteast
+					[X] 100% textsouth
+					[X] 100% textwest
+				[X] 100% graphics functions
+					[X] 100% arc
+					[X] 100% box
+					[X] 100% filled-box
+					[X] 100% circle
+					[X] 100% filled-circle
+					[X] 100% hline
+					[X] 100% lineto
+					[X] 100% pie
+					[X] 100% plot
+					[X] 100% plotxy
+					[X] 100% putsficon
+					[X] 100% vline
+				[X] 100% button function
+					[X] 100% anybutton?
+					[X] 100% button
+					[X] 100% buttondef
+					[X] 100% buttonstate
+					[X] 100% buttonsallup
+					[X] 100% buttonsdeleteall
+					[X] 100% touchprotocol
+				[X] 100% button objects
+					[X] 100% build text button
+					[X] 100% destroy
+					[X] 100% show
+					[X] 100% hide
+				[_] 0% screen objects
+				[_] 0% window objects
+				[_] 0% graphing objects
+			[_] 50% HV source
+				[X] 100% control
+				[_] 0% failure detection (D00479 document compliance)
+			[_] 50% UV source
+				[X] 100% control
+				[_] 0% failure detection (D00479 document compliance)
+			[_] 75% UV sensor
+				[X] 100% filtering
+				[X] 100% logging
+				[X] 100% scaling
+				[_] 0% failure detection (D00479 document compliance)
+			[_] 75% pressure sensor
+				[X] 100% filtering
+				[X] 100% logging
+				[X] 100% scaling
+				[_] 0% failure detection (D00479 document compliance)
+			[_] 75% vacuum sensor
+				[X] 100% filtering
+				[X] 100% logging
+				[X] 100% scaling
+				[_] 0% failure detection (D00479 document compliance)
+			[_] 50% lid closure
+				[X] 100% detection
+				[_] 0% failure detection (D00479 document compliance)
+			[_] 50% syringe detection
+				[X] 100% detection
+				[_] 0% failure detection (D00479 document compliance)
+			[X] 100% Beeper
+				[X] 100% chirp
+				[X] 100% error beep
+			[X] 100% ADC
+				[X] 100% ADC IC interface
+				[X] 100% getsample
+				[X] 100% filtersample
+			[_] 33% Thumb drive
+				[X] 100% Vinculum serial driver
+				[_] 0% Logging
+				[_] 0% Firmware upgrade
+			[_] 60% Device log
+				[X] 100% logging
+				[X] 100% formatting
+				[X] 100% log rotation
+				[_] 0% printing
+				[_] 0% thumb drive save
+		[_] 47% Application
+			[_] 37% Screens
+				[X] 100% Startup
+				[_] 0% Hard failure
+				[_] 0% Soft failure
+				[_] 0% Setup
+					[_] 0% reports
+					[_] 0% detailed reports
+					[_] 0% language
+					[_] 0% time and date
+					[_] 0% diagnostics
+					[_] 0% logging to thumb drive
+					[_] 0% firmware upgrade
+				[_] 60% Oxygen Cycle
+					[_] 0% Syringe Insertion
+					[X] 100% Evacuation
+					[X] 100% Oxygen Concentration
+					[X] 100% Fill Syringe
+					[_] 0% Syringe Error
+				[_] 66% Ozone Cycle
+					[X] 100% Ionize Oxygen
+					[_] 0% Ionize Error
+					[X] 100% Ozone Decay
+			[_] 57% Processes
+				[X] 100% Monitor
+					Master process to control other processes.
+				[X] 100% GUI
+					Show and handle user interface screens and buttons.
+				[_] 31% Worker
+					Oxygen concentration and ozone generation.
+					[X] 100% Idle
+						State: stIdle
+					[_] 0% Check Syringe
+						State: stCheckSyringe
+						[_] 0% Function
+							[_] 0% check syringe presense
+							[_] 0% cross-check sensors
+						[_] 0% Tests
+							[_] 0% lid switch
+							[_] 0% UV sensor
+							[_] 0% syringe switch
+							[_] 0% cross-check switches with UV sensor
+						[_] 0% Logging
+							[_] 0% lid opened
+							[_] 0% syringe removed
+							[_] 0% process start time
+							[_] 0% syringe check failure
+							[_] 0% sensor cross-check failure
+					[_] 33% Evacuate System
+						State: stEvacuate
+						[X] 100% Function
+						[_] 0% Tests
+							[_] 0% quick pressure
+							[_] 0% vacuum over time
+							[_] 0% vacuum hold
+							[_] 0% syringe switch
+							[_] 0% lid switch
+						[_] 0% Logging
+							[_] 0% lid opened
+							[_] 0% syringe removed
+							[_] 0% time to achieve vacuum
+							[_] 0% pressure sensor failure
+							[_] 0% vacuum sensor failure
+							[_] 0% vacuum failure
+							[_] 0% sensor cross-check failure
+					[_] 33% Evaucuate Syringe
+						State: stEvacSyringe
+						[X] 100% Function
+						[_] 0% Tests
+							[_] 0% syringe switch
+							[_] 0% lid switch
+							[_] 0% vacuum after evacuate
+						[_] 0% Logging
+							[_] 0% lid opened
+							[_] 0% syringe removed
+							[_] 0% syringe evacuation failure
+							[_] 0% sensor cross-check failure
+					[_] 33% Concentrate Oxygen
+						State: stOxygen
+						[X] 100% Function
+						[_] 0% Tests
+							[_] 0% syringe switch
+							[_] 0% lid switch
+							[_] 0% time to achieve pressure
+							[_] 0% pressure hold
+							[_] 0% pressure sensor failure
+						[_] 0% Logging
+							[_] 0% lid opened
+							[_] 0% syringe removed
+							[_] 0% time to achieve pressure
+							[_] 0% pressure failure
+							[_] 0% pressure sensor failure
+							[_] 0% sensor cross-check failure
+					[_] 33% Fill Syringe
+						State: stFillSyringe
+						[X] 100% Function
+						[_] 0% Tests
+							[_] 0% syringe switch
+							[_] 0% lid switch
+							[_] 0% Pressure after fill
+							[_] 0% UV sensor value for proper fill
+							[_] 0% UV sensor value for proper orientation
+						[_] 0% Logging
+							[_] 0% lid opened
+							[_] 0% syringe removed
+							[_] 0% pressure sensor failure
+							[_] 0% UV sensor failure
+							[_] 0% syringe orientation failure
+							[_] 0% syringe fill failure
+							[_] 0% sensor cross-check failure
+					[_] 50% Equalize Syringe Pressure
+						[X] 100% State: stFillSyringe
+						[X] 100% Function
+						[_] 0% Tests
+							[_] 0% syringe switch
+							[_] 0% lid switch
+							[_] 0% Pressure after equalization
+						[_] 0% Logging
+							[_] 0% lid opened
+							[_] 0% syringe removed
+							[_] 0% pressure failure
+							[_] 0% sensor cross-check failure
+					[_] 25% Izonize Oxygen
+						State: stIonize
+						[X] 100% Function
+						[_] 0% Tests
+							[_] 0% syringe switch
+							[_] 0% lid switch
+							[_] 0% UV sensor
+							[_] 0% UV change over time
+						[_] 0% Logging
+							[_] 0% lid opened
+							[_] 0% syringe removed
+							[_] 0% UV sensor failure
+							[_] 0% ionization failure
+							[_] 0% sensor cross-check failure
+					[_] 33% Ozone Decay
+						State: stDecay
+						[X] 100% Function
+						[_] 0% Tests
+						[_] 0% Logging
+					[_] 33% Process Complete
+						State: stComplete
+						[X] 100% Function
+						[_] 0% Tests
+						[_] 0% Logging
+					[_] 0% Process Soft Failure
+						State: stSoftFail
+					[_] 0% Process Hard Failure
+						State: stHardFail
+				[_] 0% Monitor
+					Monitor other tasks' stacks
+	Firmware Version 3
+		Features
+		Porting to new version 3 hardware
+Electronics
+	Electronics Version 2 (current version)
+		Bugs
+			No pull-up on SDA
+				Fix: hand-add pull-up on SDA
+			No pull-up on SCL
+				Fix: hand-add pull-up on SCL
+			No pull-up on P0.14
+				Fix: hand-add pull-up on P0.14
+			Q10 burns out sometimes when pump is too near limits
+				Fix: continue to replace transistor on prototype
+		Changes
+			Converted blue LED output to drive UV LED
+	Electronics Version 3 (next version)
+		Controller
+			Changes
+				Add pull-up for SDA
+				Add pull-up for SCL
+				Change Q10
+					Larger package
+					3A minimum current
+				Replace UV lamp driver with UV LED driver
+				Change drive voltage of pressure sensors to 12VDC
+					This may not work
+					The single-ended voltages may be too high
+				Increase timing on -RST
+					Current TRC is 1ms
+					Should be at least 10ms
+			Enhancements
+				Current sensor for system diagnostics
+				Louder beeper
+				Ionization current sensor
+				Control for new HV power supply
+				Add 12V fan connector
+				CPU-adjustable constant current driver for UV LED
+		Ionizer
+Pneumatics
+	[X] 100% Existing
+	[X] 100% Modifications
+		[X] 100% Change to new plumbing method so all gasses enter one port and leave another
+		[X] 100% Add luer fittings so gasses can enter and leave a the rear of the enclosure
+		[X] 100% Install and test new pump
+		[X] 100% Move valve closer to zeolite to reduce amount of residual nitrogen
+		[_] % Backpressure regulator
+Enclosure
+Problems
+	Low Ozone Concentration / Low Ionization
+		Symptoms
+			Low ozone readings on ozone meter
+			Poor performance on burning gloves
+			Inconsistent performanance on meter and gloves
+		Causes
+			Known
+				Inconsistent construction of syringe electrodes
+				Inconsistent levels of oxygen from zeolite
+					See Low/Inconsistent Oxygen Concentration
+				Poor and inconsistent ionizing field
+					Using a hacked-together high-voltage supply in an open-loop configuration
+			Possible
+				For low ozone readings
+					Faulty ozone meter
+		Solutions
+			Current
+				External ground electrode on syringe
+					Makes production faster and more consistent due to a larger ionizing field
+			To be implemented
+				Need a proper HV ionizer supply
+					We know it needs to be very short, very high-voltage, negative pulses
+					This type of power supply is very simple to create
+						Uses a flyback transformer
+						Output voltage is controlled by controlling the voltage on a capacitor
+						Output pulses can be put into the ???uS range
+						Would be under computer control so frequency and voltage can be controlled
+				Consistent method of placing the electrodes in/on the syringe
+					What needs to be determined
+						What is the correct amount of arc to cover on the ground electrode?
+						What is the correct length of the ionizing electrode?
+						What is the maximum voltage and pulse period we can use for ionizing?
+						These will have to be determined experimentally
+					How do we create consistent assembly in the mean time before manufacturing?
+		To Do
+			Prototype the new HV supply
+			Determine electrode configuration
+			Determine ionizing voltage, pulse width and frequency
+			Develop a way to simply hand-make syringes be for manufacturing
+	Inconsistent/Erroneous Ozone Measurement
+		Symptoms
+			Rise in UV transmissivity at the beginning of the ionization process
+			Inconsistent baseline readings
+		Causes
+			Known
+				Ionizer is engaged during meansurment
+					This causes more UV light to be reflected/refracted down the syringe
+					This diminishes as the level of ozone increases
+				Syringe placement in sterility tube
+					Causes refraction
+					Causes differing amounts of syringe body to be placed in the UV beam
+					Causes UV beam to be blocked by printing on the syring body
+			Possible
+				Heating of the UV sensor
+					May be due to entire machine heating
+					May be due to UV heating from UV LED
+				Oxidation of the syringe body
+				Oxidation of the lubricant
+		Solutions
+			Current
+			To be implemented
+				Syringe alignment 'donut'
+				Turn off ionizer during measurement
+					This takes about 100ms
+					Will increase ionization time by about 11%
+				Account for oxidization changes with math
+					The changes should be consistent enough for compensation down to 0.01% of full scale
+				Account for thermal influences with math
+				Add variable constant current source for UV LED
+					This will allow for maximizing dynamic range by adjusting full scale range for each syringe assembly
+					This will reduce noise from the switching power supply to below 50PPM
+				Enhance the optics
+					Perhaps both sensor and receive can be in an adjustable mounting
+					Mount should emulate or be comprised of a cylindrical aperture or tube
+					Mounts should be black
+					It seems unnecessary to switch from Teflon now or paint it black
+		Experimental Results as of 2008-10-02
+			Determine if there is heating of the sensor by the UV LED
+				Process
+					Start with the machine at room temperature
+					Open machine enclosure so machine heating effects will be removed for the experiment
+					Ionizer is off
+					Use an unlubricated syringe filled with air
+					Record the UV transmissivity measurement
+					remove syringe so the UV sensor will be overwhelmed
+					Wait 5 minutes
+					replace syringe
+					Record the UV transmissivity measurement
+					Evaluate the results
+				Results
+					Cannot create a uniform test
+					It does not appear that there is any heating at all from the UV light
+						The LED output is very low
+						The UV light is greatly filtered via the syringe and sterility enclosure
+			Determine how much machine heat affects UV sensor
+				Process
+					Start with the machine at room temperature
+					Ionizer is off
+					Use an unlubricated syringe filled with air
+					Allow the machine to heat up
+					Record the UV transmissivity measurements over time
+					Test may take a couple of hours so the machine can heat to maximum
+					Evaluate the results
+				Results
+			Determine if the standard lubricant is oxidizing
+				Process
+					Start with the machine at room temperature
+					Ionizer is off
+					Use a lubricated syringe filled with oxygen
+					Record the UV transmissivity measurements over time
+					Include any sensor heating effects, if they exist from the above experiments
+					Evaluate the results
+				Results
+					The syringe body / lubricant transmissivity does change about 2.3%
+			Determine if the special lubricant is oxidizing
+				Process
+					Start with the machine at room temperature
+					Ionizer is off
+					Use a specially lubricated syringe filled with oxygen
+					Record the UV transmissivity measurements over time
+					Include any sensor heating effects, if they exist from the above experiments
+					Evaluate the results
+				Results
+					The syringe body / lubricant transmissivity does change about 1.1%
+			Determine if the syringe body is oxidizing
+				Process
+					Start with the machine at room temperature
+					Ionizer is off
+					Use an unlubricated or cleaned syringe filled with oxygen
+					Record the UV transmissivity measurements over time
+					Include any sensor heating effects, if they exist from the above experiments
+					Evaluate the results
+				Results
+					The syringe body transmissivity does change about 0.1% to 0.2%
+		Experiments to Perform
+			Statistical Analysis on the Consistency of Syringe/Lubricant Oxidation
+			Determine temperature coeffients for UV sensor
+		Other
+			How to accurately compute ozone concentration?
+				Each syringe and syringe assembly has differing levels of transmissivity
+				Is there a fixed, proportional method that can be used?
+					OZ = beerslaw(UVoz)
+					UVoz = UVin/UVox
+					UVox: UV transmissivity reading through oxygen-fill syringe assembly
+					UVin: UV transmissivity reading in real-time
+					UVoz: UV transmissivity of ozone/oxygen mix
+	Low/Inconsistent Oxygen Concentration
+		Symptoms
+			Low oxygen output
+		Causes
+			Known
+				Build up of nitrogen inside enclosure
+				Zeolite compromised by moisture
+				A sneak path where air in the syringe and syringe tubing is entering the zeolite
+				Current tubing length between output of zeolite chamber and syringe valve
+			Possible
+				Time to compress the air into the zeolite chamber
+				Another path through which air is entering zeolite without going through the dessicant
+		Solutions
+			Replumb the system
+				So all air goes through the dessicant
+				So vacuuming the syringe does not allow outside air to enter zeolite
+				So the syringe valve is immediately next to the zeolite chamber
+				So all incoming air comes from the outside of the enclosure
+				So all outgoing air is exhausted to the outside of the enclosure
+		To Do
+			Test with the new, higher-volume pump to see if oxygen concentration improves
+			Determine if there are any other sneak paths where air that has not gone through the dessicant can enter the zeolite
+			Determine if it is even necessary to evacuate the zeolite or if venting it is sufficient
+	Poor System Ventilation
+		Symptoms
+			System gets too hot
+		Cause
+			Poor ventilation
+		Solution
+			Add small, muffin fan to rear of case
+			Add vent holes for air to circulate
+		To Do
+			Select an appropriate fan for the prototype
+			Select an appropriate fan for the redesign
+Questions
+	Should sensor values be checked/cross-checked at each sample?
+		Yes, where possible
+Sandbox

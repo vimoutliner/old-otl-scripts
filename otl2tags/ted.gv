@@ -1,0 +1,73 @@
+digraph V {
+node [shape=box style=rounded]
+# comment out rankdir to use top-to-bottom placement
+rankdir=LR
+node0 [label="Item List"]
+node1 [label="This is just a simple test of the text function included into the test document."]
+node0 -> node1
+node3 [label="item 1"]
+node0 -> node3
+
+node4 [label="item 1.1"]
+node3 -> node4
+
+node5 [label="item 1.1.1"]
+node4 -> node5
+node6 [label="item 1.1.2"]
+node4 -> node6
+node7 [label="item 1.1.3"]
+node4 -> node7
+
+node8 [label="item 1.2"]
+node3 -> node8
+
+node9 [label="item 1.2.1"]
+node8 -> node9
+
+node10 [label="item 1.2.1.1"]
+node9 -> node10
+node11 [label="item 1.2.1.2"]
+node9 -> node11
+node12 [label="item 1.2.1.3"]
+node9 -> node12
+
+node13 [label="item 1.2.2"]
+node8 -> node13
+node14 [label="item 1.2.3"]
+node8 -> node14
+
+node15 [label="*item 1.2.3.1"]
+node14 -> node15
+node16 [label="*item 1.2.3.2"]
+node14 -> node16
+node17 [label="*item 1.2.3.3"]
+node14 -> node17
+
+
+
+node18 [label="item 2"]
+node0 -> node18
+
+node19 [label="item 2.1"]
+node18 -> node19
+
+node20 [label="1 item 2.1.1"]
+node19 -> node20
+node21 [label="2 item 2.1.2"]
+node19 -> node21
+node22 [label="3 item 2.1.3"]
+node19 -> node22
+
+node23 [label="item 2.2"]
+node18 -> node23
+
+node24 [label="item 2.2.1"]
+node23 -> node24
+node25 [label="item 2.2.2"]
+node23 -> node25
+node26 [label="item 2.2.3"]
+node23 -> node26
+
+
+
+}
